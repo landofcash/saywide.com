@@ -1,5 +1,12 @@
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
+node_modules/
+.pnpm-store/
+.next/
+coverage/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+.playwright-cli/
+output/playwright/
 
