@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, AudioLines, Check, Mic, PenLine, Sparkles, Square } from "lucide-react";
+import { ArrowRight, AudioLines, Check, LayoutDashboard, LogIn, Menu, Mic, PenLine, Sparkles, Square, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -19,6 +19,7 @@ export function CreateSurveyScreen() {
   const [recording, setRecording] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   async function createSurvey() {
     if (goal.trim().length < 12) return;
@@ -44,14 +45,27 @@ export function CreateSurveyScreen() {
 
   return (
     <div className="min-h-screen overflow-hidden">
-      <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-        <Brand />
-        <nav className="flex items-center gap-1 text-sm font-semibold">
-          <Button variant="ghost" asChild><Link href="/dashboard">My surveys</Link></Button>
-          <Button variant="secondary" size="sm" asChild><Link href="/login">Sign in</Link></Button>
-        </nav>
+      <header className="relative border-b border-[var(--line)] bg-white sm:border-b-0 sm:bg-transparent">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-8">
+          <Brand />
+          <nav className="hidden items-center gap-1 text-sm font-semibold sm:flex" aria-label="Organizer navigation">
+            <Button variant="ghost" asChild><Link href="/dashboard">My surveys</Link></Button>
+            <Button variant="secondary" size="sm" asChild><Link href="/login">Sign in</Link></Button>
+          </nav>
+          <Button type="button" variant="ghost" size="icon" className="sm:hidden" aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-home-navigation" onClick={() => setMobileMenuOpen((open) => !open)}>
+            {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          </Button>
+        </div>
+        {mobileMenuOpen && (
+          <nav id="mobile-home-navigation" className="absolute inset-x-0 top-full z-30 border-b border-[var(--line)] bg-white shadow-lg sm:hidden" aria-label="Mobile organizer navigation">
+            <div className="px-4 py-2">
+              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 border-b border-[var(--line)] px-2 text-sm font-semibold"><LayoutDashboard className="size-5 text-[var(--coral-dark)]" /> My surveys</Link>
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 px-2 text-sm font-semibold"><LogIn className="size-5 text-[var(--coral-dark)]" /> Sign in</Link>
+            </div>
+          </nav>
+        )}
       </header>
-      <main className="relative mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-8 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start lg:pt-12">
+      <main className="relative mx-auto grid max-w-7xl gap-8 px-4 pb-16 pt-6 sm:gap-10 sm:px-8 sm:pb-20 sm:pt-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start lg:pt-12">
         <section>
           <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-[var(--mint-soft)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-900">
             <Sparkles className="size-3.5" /> Ask openly. Understand clearly.
@@ -72,7 +86,7 @@ export function CreateSurveyScreen() {
         <Card className="p-5 sm:p-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Start with your goal</p>
-            <h2 className="font-display mt-2 text-3xl font-bold tracking-[-0.035em]">What do you want to learn?</h2>
+            <h2 className="font-display mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">What do you want to learn?</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Describe the audience and the decision their perspective will help you make.</p>
             <div className="relative mt-6">
               <Textarea
@@ -81,7 +95,7 @@ export function CreateSurveyScreen() {
                 onChange={(event) => setGoal(event.target.value)}
                 rows={8}
                 placeholder={example}
-                className="min-h-48 pr-5 text-base leading-7"
+                className="min-h-40 pr-5 text-base leading-7 sm:min-h-48"
               />
               <div className="absolute bottom-4 right-4">
                 <Button

@@ -63,7 +63,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <Metric label="Submitted responses" value={String(survey.submittedResponseCount)} detail="Not verified people" accent="mint" />
         <Metric label="In progress" value={String(Math.max(0, survey.startedResponseCount - survey.submittedResponseCount))} detail={`${survey.startedResponseCount} sessions started`} accent="yellow" />
         <Metric label="Questions" value={String(survey.questionCount)} detail="Open-ended" accent="lavender" />

@@ -48,7 +48,7 @@ export function DashboardScreen() {
         <Button asChild variant="secondary" size="sm"><Link href="/account/create">Protect my surveys</Link></Button>
       </Card>
 
-      <div className="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label="Filter surveys">
+      <div className="mt-8 flex flex-wrap gap-2" aria-label="Filter surveys">
         {filters.map((item) => (
           <button key={item} onClick={() => setFilter(item)} className={`min-h-10 rounded-lg border px-4 text-sm font-semibold capitalize ${filter === item ? "border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
             {item}
