@@ -25,7 +25,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
     });
   }, [surveyId]);
 
-  if (!survey) return <OrganizerShell><div className="h-96 animate-pulse rounded-[2rem] bg-white/60" /></OrganizerShell>;
+  if (!survey) return <OrganizerShell><div className="h-96 animate-pulse rounded-xl bg-white" /></OrganizerShell>;
 
   const thresholdMet = survey.submittedResponseCount >= survey.settings.minReportResponses;
   const progress = Math.min(100, (survey.submittedResponseCount / survey.settings.minReportResponses) * 100);
@@ -53,7 +53,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
       <div className="mt-4 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div className="max-w-3xl">
           <Badge tone={survey.status === "open" ? "open" : survey.status === "draft" ? "draft" : "closed"}>{survey.status}</Badge>
-          <h1 className="font-display mt-3 text-5xl font-bold tracking-[-0.055em] sm:text-6xl">{survey.title}</h1>
+          <h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{survey.title}</h1>
           <p className="mt-4 leading-7 text-[var(--muted)]">{survey.introduction}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -72,7 +72,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
         <Card className="p-6 sm:p-7">
-          <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Report readiness</p><h2 className="font-display mt-2 text-3xl font-bold">{thresholdMet ? "Ready to understand" : "Keep collecting"}</h2></div><BarChart3 className="size-7" /></div>
+          <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Report readiness</p><h2 className="font-display mt-2 text-2xl font-bold">{thresholdMet ? "Ready to understand" : "Keep collecting"}</h2></div><BarChart3 className="size-6" /></div>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{thresholdMet ? `${survey.submittedResponseCount} responses can be included in a new frozen snapshot.` : `${survey.settings.minReportResponses - survey.submittedResponseCount} more responses are needed for the privacy threshold.`}</p>
           <div className="mt-6 h-3 overflow-hidden rounded-full bg-[var(--canvas)]" aria-label={`${Math.round(progress)} percent toward report threshold`}><div className="h-full rounded-full bg-[var(--mint)]" style={{ width: `${progress}%` }} /></div>
           <div className="mt-2 flex justify-between text-xs font-semibold text-[var(--muted)]"><span>{pluralize(survey.submittedResponseCount, "response")}</span><span>Minimum {survey.settings.minReportResponses}</span></div>
@@ -82,9 +82,9 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
         </Card>
 
         <Card className="p-6 sm:p-7">
-          <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Report history</p><h2 className="font-display mt-2 text-3xl font-bold">What you have asked</h2></div><FileText className="size-7" /></div>
+          <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Report history</p><h2 className="font-display mt-2 text-2xl font-bold">What you have asked</h2></div><FileText className="size-6" /></div>
           {reports.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-[var(--line)] p-6 text-center text-sm text-[var(--muted)]">No reports yet. Once the threshold is met, ask Saywide what you need to understand.</div>
+            <div className="mt-6 rounded-lg border border-dashed border-[var(--line)] p-6 text-center text-sm text-[var(--muted)]">No reports yet. Once the threshold is met, ask Saywide what you need to understand.</div>
           ) : (
             <div className="mt-5 divide-y divide-[var(--line)]">
               {reports.map((report) => <Link href={`/reports/${report.reportId}`} key={report.reportId} className="group flex items-start justify-between gap-4 py-4 first:pt-0"><div><p className="line-clamp-2 font-semibold leading-6">{report.instruction}</p><p className="mt-1 flex items-center gap-1 text-xs text-[var(--muted)]"><CalendarClock className="size-3.5" /> Snapshot {formatDateTime(report.snapshotAt)}</p></div><ExternalLink className="mt-1 size-4 shrink-0 text-[var(--muted)] group-hover:text-[var(--ink)]" /></Link>)}
@@ -102,6 +102,6 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
 }
 
 function Metric({ label, value, detail, accent }: { label: string; value: string; detail: string; accent: "mint" | "yellow" | "lavender" | "coral" }) {
-  const colors = { mint: "bg-[var(--mint-soft)]", yellow: "bg-amber-50", lavender: "bg-violet-50", coral: "bg-orange-50" };
-  return <Card className={`${colors[accent]} p-5`}><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p><p className="font-display mt-3 text-4xl font-bold tracking-[-0.04em]">{value}</p><p className="mt-1 text-xs text-[var(--muted)]">{detail}</p></Card>;
+  const colors = { mint: "border-t-4 border-t-emerald-700", yellow: "border-t-4 border-t-slate-400", lavender: "border-t-4 border-t-slate-500", coral: "border-t-4 border-t-[var(--coral)]" };
+  return <Card className={`${colors[accent]} bg-white p-5`}><p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p><p className="font-display mt-3 text-3xl font-bold tracking-[-0.025em]">{value}</p><p className="mt-1 text-xs text-[var(--muted)]">{detail}</p></Card>;
 }

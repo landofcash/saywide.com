@@ -18,7 +18,7 @@ export function Badge({ className, children, ...props }: HTMLAttributes<HTMLSpan
   void _tone;
   return (
     <span
-      className={cn("inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-semibold capitalize", tones[tone], className)}
+      className={cn("inline-flex items-center whitespace-nowrap rounded-md border px-2.5 py-1 text-xs font-semibold capitalize", tones[tone], className)}
       {...rest}
     >
       {children}

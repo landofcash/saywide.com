@@ -5,18 +5,18 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border text-sm font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--focus)] disabled:pointer-events-none disabled:opacity-45",
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--focus)] disabled:pointer-events-none disabled:opacity-45",
   {
     variants: {
       variant: {
         primary:
-          "border-[var(--ink)] bg-[var(--ink)] px-5 text-white shadow-[0_5px_0_var(--shadow)] hover:-translate-y-0.5 hover:shadow-[0_7px_0_var(--shadow)] active:translate-y-0 active:shadow-[0_3px_0_var(--shadow)]",
+          "border-[var(--ink)] bg-[var(--ink)] px-5 text-white hover:bg-[#26352f]",
         accent:
-          "border-[var(--coral-dark)] bg-[var(--coral)] px-5 text-[var(--ink)] shadow-[0_5px_0_var(--coral-dark)] hover:-translate-y-0.5",
+          "border-[var(--coral-dark)] bg-[var(--coral)] px-5 text-white hover:bg-[var(--coral-dark)]",
         secondary:
-          "border-[var(--line)] bg-white/75 px-5 text-[var(--ink)] hover:border-[var(--ink)] hover:bg-white",
+          "border-[var(--line)] bg-white px-5 text-[var(--ink)] hover:border-[#87938e] hover:bg-slate-50",
         ghost: "border-transparent px-3 text-[var(--muted)] hover:bg-black/5 hover:text-[var(--ink)]",
-        danger: "border-red-200 bg-red-50 px-5 text-red-800 hover:bg-red-100",
+        danger: "border-red-300 bg-white px-5 text-red-700 hover:bg-red-50",
       },
       size: {
         default: "h-11",
@@ -38,7 +38,8 @@ export interface ButtonProps
 export function Button({ className, variant, size, asChild, style, ...props }: ButtonProps) {
   const Component = asChild ? Slot : "button";
   const resolvedVariant = variant ?? "primary";
-  const resolvedStyle = resolvedVariant === "primary" ? { ...style, color: style?.color ?? "#fffdf8" } : style;
+  const usesLightText = resolvedVariant === "primary" || resolvedVariant === "accent";
+  const resolvedStyle = usesLightText ? { ...style, color: style?.color ?? "#ffffff" } : style;
   return <Component className={cn(buttonVariants({ variant, size }), className)} style={resolvedStyle} {...props} />;
 }
 

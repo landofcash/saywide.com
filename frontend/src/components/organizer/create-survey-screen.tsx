@@ -43,23 +43,23 @@ export function CreateSurveyScreen() {
   }
 
   return (
-    <div className="noise min-h-screen overflow-hidden">
-      <header className="mx-auto flex h-24 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <div className="min-h-screen overflow-hidden">
+      <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
         <Brand />
         <nav className="flex items-center gap-1 text-sm font-semibold">
           <Button variant="ghost" asChild><Link href="/dashboard">My surveys</Link></Button>
           <Button variant="secondary" size="sm" asChild><Link href="/login">Sign in</Link></Button>
         </nav>
       </header>
-      <main className="relative mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-8 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:pt-14">
+      <main className="relative mx-auto grid max-w-7xl gap-10 px-5 pb-20 pt-8 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start lg:pt-12">
         <section>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-[var(--mint-soft)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-900">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-[var(--mint-soft)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-900">
             <Sparkles className="size-3.5" /> Ask openly. Understand clearly.
           </div>
-          <h1 className="font-display max-w-[10ch] text-[clamp(3.4rem,8vw,7.4rem)] font-bold leading-[0.88] tracking-[-0.065em]">
+          <h1 className="font-display max-w-[13ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.06] tracking-[-0.035em]">
             Hear what everyone has to say.
           </h1>
-          <p className="mt-7 max-w-xl text-lg leading-8 text-[var(--muted)] sm:text-xl">
+          <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted)]">
             Create an open-ended survey, collect answers by voice or text, and turn them into a report grounded in real evidence.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
@@ -69,9 +69,8 @@ export function CreateSurveyScreen() {
           </div>
         </section>
 
-        <Card className="relative overflow-hidden p-5 sm:p-8">
-          <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-[var(--yellow)]/45" />
-          <div className="relative">
+        <Card className="p-5 sm:p-8">
+          <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Start with your goal</p>
             <h2 className="font-display mt-2 text-3xl font-bold tracking-[-0.035em]">What do you want to learn?</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Describe the audience and the decision their perspective will help you make.</p>

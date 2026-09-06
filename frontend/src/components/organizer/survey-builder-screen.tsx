@@ -97,7 +97,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   }
 
   if (loading) {
-    return <OrganizerShell><div className="space-y-5" aria-label="Loading survey builder"><div className="h-16 w-2/3 animate-pulse rounded-3xl bg-white/60" /><div className="h-96 animate-pulse rounded-[2rem] bg-white/60" /></div></OrganizerShell>;
+    return <OrganizerShell><div className="space-y-5" aria-label="Loading survey builder"><div className="h-16 w-2/3 animate-pulse rounded-xl bg-white" /><div className="h-96 animate-pulse rounded-xl bg-white" /></div></OrganizerShell>;
   }
 
   return (
@@ -105,7 +105,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
-          <h1 className="font-display mt-2 text-4xl font-bold tracking-[-0.045em] sm:text-5xl">Shape the questions</h1>
+          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Shape the questions</h1>
         </div>
         <div className="flex items-center gap-2">
           <span className="hidden text-xs font-semibold text-[var(--muted)] sm:inline" aria-live="polite">
@@ -131,7 +131,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           </Card>
 
           <div className="flex items-end justify-between">
-            <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p><h2 className="font-display mt-1 text-3xl font-bold">One clear thought at a time</h2></div>
+            <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p><h2 className="font-display mt-1 text-2xl font-bold">One clear thought at a time</h2></div>
             <span className="text-sm font-semibold text-[var(--muted)]">{questions.length} / 5</span>
           </div>
 
@@ -171,7 +171,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
               <Input id="minimum" type="number" min={3} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
               <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
             </div>
-            <div className="mt-6 rounded-2xl bg-[var(--mint-soft)] p-4 text-sm leading-6">
+            <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">
               <p className="font-bold">Participant privacy</p>
               <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
             </div>
@@ -183,9 +183,9 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       {preview && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[var(--ink)]/45 p-4" role="dialog" aria-modal="true" aria-labelledby="preview-title">
           <Card className="max-h-[90vh] w-full max-w-xl overflow-y-auto p-6 sm:p-8">
-            <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Participant preview</p><h2 id="preview-title" className="font-display mt-2 text-3xl font-bold">{title || "Untitled survey"}</h2></div><Button variant="ghost" onClick={() => setPreview(false)}>Close</Button></div>
+            <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Participant preview</p><h2 id="preview-title" className="font-display mt-2 text-2xl font-bold">{title || "Untitled survey"}</h2></div><Button variant="ghost" onClick={() => setPreview(false)}>Close</Button></div>
             <p className="mt-4 leading-7 text-[var(--muted)]">{introduction || "Your survey introduction will appear here."}</p>
-            <div className="mt-6 space-y-3">{questions.map((question, index) => <div key={index} className="rounded-2xl border border-[var(--line)] p-4"><p className="text-xs font-bold text-[var(--muted)]">QUESTION {index + 1}</p><p className="mt-2 font-semibold">{question.prompt || "Your question will appear here."}</p></div>)}</div>
+            <div className="mt-6 space-y-3">{questions.map((question, index) => <div key={index} className="rounded-lg border border-[var(--line)] p-4"><p className="text-xs font-bold text-[var(--muted)]">QUESTION {index + 1}</p><p className="mt-2 font-semibold">{question.prompt || "Your question will appear here."}</p></div>)}</div>
           </Card>
         </div>
       )}

@@ -22,7 +22,7 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
     void api.getSurvey(surveyId).then(setSurvey);
   }, [surveyId]);
 
-  if (!survey) return <OrganizerShell><div className="h-96 animate-pulse rounded-[2rem] bg-white/60" /></OrganizerShell>;
+  if (!survey) return <OrganizerShell><div className="h-96 animate-pulse rounded-xl bg-white" /></OrganizerShell>;
   const path = survey.participantUrl ?? `/s/${survey.publicToken ?? "preview"}`;
   const shareUrl = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
 
@@ -47,16 +47,16 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
   return (
     <OrganizerShell>
       <div className="mx-auto max-w-4xl text-center">
-        <span className="mx-auto grid size-16 place-items-center rounded-full bg-[var(--mint)] shadow-[0_6px_0_#4f9575]"><Check className="size-8" strokeWidth={3} /></span>
+        <span className="mx-auto grid size-14 place-items-center rounded-lg border border-emerald-200 bg-[var(--mint-soft)] text-emerald-800"><Check className="size-7" strokeWidth={2.5} /></span>
         <Badge tone="open" className="mt-5">Survey is open</Badge>
-        <h1 className="font-display mx-auto mt-4 max-w-3xl text-5xl font-bold tracking-[-0.055em] sm:text-6xl">Ready to hear from your group</h1>
+        <h1 className="font-display mx-auto mt-4 max-w-3xl text-3xl font-bold tracking-[-0.035em] sm:text-4xl">Ready to hear from your group</h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Share this participant-only link. It contains no organizer credentials and asks for no participant account.</p>
 
         <Card className="mt-9 grid gap-8 p-5 text-left sm:p-8 md:grid-cols-[1fr_260px] md:items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Participant link</p>
-            <h2 className="font-display mt-2 text-3xl font-bold">{survey.title}</h2>
-            <div className="mt-6 rounded-2xl border border-[var(--line)] bg-white p-3">
+            <h2 className="font-display mt-2 text-2xl font-bold">{survey.title}</h2>
+            <div className="mt-6 rounded-lg border border-[var(--line)] bg-white p-3">
               <p className="break-all text-sm font-semibold">{shareUrl}</p>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
@@ -65,8 +65,8 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
             </div>
             <p className="mt-6 text-sm text-[var(--muted)]">{survey.settings.expiresAt ? `Accepting responses until ${formatDate(survey.settings.expiresAt)}` : "No automatic closing date"}</p>
           </div>
-          <div className="flex flex-col items-center rounded-3xl bg-white p-5">
-            <QRCodeCanvas ref={canvasRef} value={shareUrl} size={210} level="M" marginSize={3} title={`QR code for ${survey.title}`} fgColor="#20302b" bgColor="#ffffff" />
+          <div className="flex flex-col items-center rounded-lg border border-[var(--line)] bg-white p-5">
+            <QRCodeCanvas ref={canvasRef} value={shareUrl} size={210} level="M" marginSize={3} title={`QR code for ${survey.title}`} fgColor="#17231f" bgColor="#ffffff" />
             <Button variant="ghost" size="sm" className="mt-3" onClick={downloadQr}><Download className="size-4" /> Download QR</Button>
           </div>
         </Card>

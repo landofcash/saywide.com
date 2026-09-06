@@ -1,19 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --canvas: #f3efe6;
-  --paper: #fffdf8;
-  --ink: #20302b;
-  --muted: #66716d;
-  --line: #d9d9cf;
-  --mint: #9fe6c5;
-  --mint-soft: #dff7eb;
-  --coral: #ff8064;
-  --coral-dark: #b84d39;
-  --yellow: #f6cf63;
-  --lavender: #ddd6fa;
-  --shadow: #101a17;
-  --focus: rgb(54 140 109 / 24%);
+  --canvas: #f3f5f4;
+  --paper: #ffffff;
+  --ink: #17231f;
+  --muted: #596560;
+  --line: #cfd6d3;
+  --mint: #66a18d;
+  --mint-soft: #e8f1ed;
+  --coral: #286451;
+  --coral-dark: #1d4c3f;
+  --lavender: #e8ecef;
+  --focus: rgb(40 100 81 / 22%);
   color-scheme: light;
 }
 
@@ -24,12 +22,9 @@ html { background: var(--canvas); }
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at 6% 4%, rgb(159 230 197 / 35%), transparent 23rem),
-    radial-gradient(circle at 92% 18%, rgb(255 128 100 / 16%), transparent 28rem),
-    var(--canvas);
+  background: var(--canvas);
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   text-rendering: optimizeLegibility;
 }
 
@@ -38,16 +33,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 a { color: inherit; text-decoration: none; }
 
 .font-display {
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.noise {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
-}
-
-.wave-grid {
-  background-image: radial-gradient(circle, rgb(32 48 43 / 15%) 1px, transparent 1px);
-  background-size: 18px 18px;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 ::selection { background: var(--mint); color: var(--ink); }

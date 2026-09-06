@@ -14,14 +14,14 @@ export function OrganizerShell({ children, wide = false }: { children: React.Rea
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-[var(--line)]/80 bg-[var(--canvas)]/88 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[var(--paper)]">
         <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-5 sm:px-8">
           <Brand />
           <nav className="flex items-center gap-1" aria-label="Organizer navigation">
             <Link
               href="/dashboard"
               className={cn(
-                "hidden min-h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold sm:flex",
+                "hidden min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold sm:flex",
                 dashboardActive ? "bg-white" : "text-[var(--muted)] hover:bg-white/60",
               )}
             >
@@ -37,9 +37,9 @@ export function OrganizerShell({ children, wide = false }: { children: React.Rea
         </div>
       </header>
       <main className={cn("mx-auto w-full px-5 py-8 sm:px-8 sm:py-12", wide ? "max-w-[1440px]" : "max-w-6xl")}>{children}</main>
-      <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-around rounded-full border border-[var(--line)] bg-[var(--paper)] p-2 shadow-xl sm:hidden" aria-label="Mobile organizer navigation">
+      <nav className="fixed inset-x-4 bottom-4 z-30 flex items-center justify-around rounded-xl border border-[var(--line)] bg-[var(--paper)] p-2 shadow-lg sm:hidden" aria-label="Mobile organizer navigation">
         <Link href="/dashboard" className="flex min-h-11 flex-col items-center justify-center px-4 text-[10px] font-bold uppercase tracking-wide"><BarChart3 className="size-5" /> Surveys</Link>
-        <Link href="/" className="grid size-12 place-items-center rounded-full bg-[var(--coral)]" aria-label="New survey"><Plus className="size-6" /></Link>
+        <Link href="/" className="grid size-12 place-items-center rounded-lg bg-[var(--coral)] text-white" aria-label="New survey"><Plus className="size-6" /></Link>
         <Link href="/login" className="flex min-h-11 flex-col items-center justify-center px-4 text-[10px] font-bold uppercase tracking-wide"><LogIn className="size-5" /> Sign in</Link>
       </nav>
     </div>
