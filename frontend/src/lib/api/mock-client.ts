@@ -226,6 +226,10 @@ export const mockSaywideApi: SaywideApi = {
     };
   },
 
+  async createTranscriptionSession() {
+    throw new Error("Live voice transcription is not used by the synthetic demo.");
+  },
+
   async readAnswers(publicToken) {
     await pause(40);
     return getStoredAnswers(publicToken);

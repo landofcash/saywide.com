@@ -26,9 +26,25 @@ const config: AppConfig = {
   tokenDerivationSecret: "test-only-derivation-secret-with-32-characters",
   guestCredentialDays: 365,
   responseSessionMinutes: 60,
+  awsRegion: "us-east-1",
+  transcribeLanguageCode: "en-US",
+  transcribeSignedUrlSeconds: 60,
+  transcribeRecordingLimitSeconds: 120,
   logLevel: "silent",
 };
-const app = buildApp({ config, pool });
+const app = buildApp({
+  config,
+  pool,
+  transcriptionSessionSigner: {
+    async issueSession() {
+      return {
+        websocketUrl: "wss://transcribestreaming.us-east-1.amazonaws.com:8443/stream-transcription-websocket?signed=test",
+        expiresAt: "2026-09-07T12:01:00.000Z",
+        recordingLimitSeconds: 120,
+      };
+    },
+  },
+});
 
 beforeAll(async () => {
   await adminPool.query(`CREATE DATABASE "${databaseName}"`);
@@ -123,6 +139,25 @@ describe("Phase 1 API", () => {
     });
     expect(firstStart.statusCode).toBe(201);
     const firstSession = firstStart.json();
+
+    const transcriptionSession = await app.inject({
+      method: "POST",
+      url: `/api/public/sessions/${firstSession.sessionId}/transcription-sessions`,
+      headers: { origin, authorization: `Bearer ${firstSession.sessionToken}` },
+      payload: {
+        questionId: publicBody.questions[0].questionId,
+        languageCode: "en-US",
+        mediaEncoding: "pcm",
+        sampleRateHertz: 16000,
+      },
+    });
+    expect(transcriptionSession.statusCode).toBe(200);
+    expect(transcriptionSession.headers["cache-control"]).toBe("private, no-store");
+    expect(transcriptionSession.json()).toMatchObject({
+      websocketUrl: expect.stringMatching(/^wss:\/\//),
+      recordingLimitSeconds: 120,
+    });
+
     const firstStartRetry = await app.inject({
       method: "POST",
       url: `/api/public/s/${publicToken}/sessions`,

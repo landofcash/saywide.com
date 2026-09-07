@@ -6,6 +6,7 @@ import type {
   SurveyDetail,
   SurveyDraftInput,
   SurveyListResponse,
+  TranscriptionSessionResponse,
 } from "@saywide/contracts";
 
 import {
@@ -153,6 +154,23 @@ export const httpSaywideApi: SaywideApi = {
 
   async startResponse(publicToken, input) {
     return createResponseSession(publicToken, input);
+  },
+
+  async createTranscriptionSession(publicToken, questionId) {
+    const session = await ensureResponseSession(publicToken);
+    return request<TranscriptionSessionResponse>(
+      `/api/public/sessions/${encodeURIComponent(session.sessionId)}/transcription-sessions`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.sessionToken}` },
+        body: JSON.stringify({
+          questionId,
+          languageCode: "en-US",
+          mediaEncoding: "pcm",
+          sampleRateHertz: 16000,
+        }),
+      },
+    );
   },
 
   async readAnswers(publicToken) {

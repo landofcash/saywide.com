@@ -6,8 +6,10 @@ Fastify backend boundary, and browser-safe shared contracts.
 
 The repository now includes a working Phase 1 slice: browser-bound guest
 workspaces, manual surveys, publishing and collection status, and anonymous
-text responses backed by PostgreSQL. Agent drafting, reports, accounts, and
-voice remain available in the synthetic frontend demo only.
+text responses backed by PostgreSQL. Live HTTP mode also includes the minimal
+participant voice path: the backend issues a short-lived signed URL and the
+browser streams microphone PCM directly to Amazon Transcribe. Agent drafting,
+reports, and accounts remain available in the synthetic frontend demo only.
 
 ## Run locally
 
@@ -25,6 +27,10 @@ corepack pnpm dev
 Set `NEXT_PUBLIC_USE_MOCK_API=false` in `frontend/.env.local` to use the live
 Fastify API. Open <http://localhost:3000>; the API listens on
 <http://localhost:4000> and its PostgreSQL container binds to local port `5433`.
+For voice testing, log in with the AWS CLI profile named by `AWS_PROFILE` in
+`backend/.env` (the example uses `saywide.com`). The identity needs only
+`transcribe:StartStreamTranscriptionWebSocket` in the configured `AWS_REGION`.
+Do not set `AWS_PROFILE` in Railway; provide AWS runtime credentials there.
 
 Keep `NEXT_PUBLIC_USE_MOCK_API=true` for the complete synthetic UI demo. Its
 seeded participant survey is available at

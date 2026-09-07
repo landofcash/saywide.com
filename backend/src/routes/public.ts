@@ -1,16 +1,28 @@
-import { saveAnswerInputSchema, startResponseInputSchema, submitResponseInputSchema } from "@saywide/contracts";
+import {
+  saveAnswerInputSchema,
+  startResponseInputSchema,
+  submitResponseInputSchema,
+  transcriptionSessionInputSchema,
+} from "@saywide/contracts";
 import type { FastifyPluginAsync } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 
+import type { AppConfig } from "../config.js";
+import { AppError } from "../errors.js";
 import type { SaywideService } from "../services/saywide-service.js";
-import { bearerToken, idempotencyKey } from "./helpers.js";
+import type { TranscriptionSessionSigner } from "../services/transcribe-session-signer.js";
+import { bearerToken, idempotencyKey, requireAllowedOrigin } from "./helpers.js";
 
 const publicParamsSchema = z.object({ publicToken: z.string().min(16).max(128) });
 const sessionParamsSchema = z.object({ sessionId: z.string().uuid() });
 const answerParamsSchema = sessionParamsSchema.extend({ questionId: z.string().uuid() });
 
-export function publicRoutes(service: SaywideService): FastifyPluginAsync {
+export function publicRoutes(
+  service: SaywideService,
+  transcriptionSigner: TranscriptionSessionSigner,
+  config: AppConfig,
+): FastifyPluginAsync {
   return async (app) => {
     const typed = app.withTypeProvider<ZodTypeProvider>();
 
@@ -36,6 +48,26 @@ export function publicRoutes(service: SaywideService): FastifyPluginAsync {
       request.params.questionId,
       request.body.finalText,
     ));
+
+    typed.post("/api/public/sessions/:sessionId/transcription-sessions", {
+      schema: { params: sessionParamsSchema, body: transcriptionSessionInputSchema },
+      config: { rateLimit: { max: 10, timeWindow: "1 hour" } },
+    }, async (request, reply) => {
+      requireAllowedOrigin(request, config);
+      await service.authorizeTranscriptionSession(
+        request.params.sessionId,
+        bearerToken(request),
+        request.body.questionId,
+      );
+      try {
+        const session = await transcriptionSigner.issueSession();
+        reply.header("Cache-Control", "private, no-store");
+        return session;
+      } catch {
+        request.log.error({ code: "TRANSCRIPTION_SIGNING_FAILED" }, "Could not issue Transcribe streaming session");
+        throw new AppError(503, "TRANSCRIPTION_UNAVAILABLE", "Voice transcription is temporarily unavailable. You can continue by typing.");
+      }
+    });
 
     typed.post("/api/public/sessions/:sessionId/submit", {
       schema: { params: sessionParamsSchema, body: submitResponseInputSchema },

@@ -121,6 +121,21 @@ export const responseSessionSchema = z.object({
 });
 export type ResponseSession = z.infer<typeof responseSessionSchema>;
 
+export const transcriptionSessionInputSchema = z.object({
+  questionId: z.string().uuid(),
+  languageCode: z.literal("en-US"),
+  mediaEncoding: z.literal("pcm"),
+  sampleRateHertz: z.literal(16000),
+});
+export type TranscriptionSessionInput = z.infer<typeof transcriptionSessionInputSchema>;
+
+export const transcriptionSessionResponseSchema = z.object({
+  websocketUrl: z.string().startsWith("wss://"),
+  expiresAt: z.string(),
+  recordingLimitSeconds: z.number().int().positive(),
+});
+export type TranscriptionSessionResponse = z.infer<typeof transcriptionSessionResponseSchema>;
+
 export type ParticipantAnswers = Record<string, string>;
 
 export const apiErrorSchema = z.object({

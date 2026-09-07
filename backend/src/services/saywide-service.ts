@@ -259,6 +259,20 @@ export class SaywideService {
     });
   }
 
+  async authorizeTranscriptionSession(clientSessionId: string, rawToken: string | undefined, questionId: string): Promise<void> {
+    if (!rawToken) throw new AppError(401, "RESPONSE_SESSION_AUTH_REQUIRED", "Response-session access is required.");
+    await this.repository.transaction(async (client) => {
+      const session = await this.repository.getResponseSession(client, clientSessionId, hashValue(rawToken));
+      if (!session) throw new AppError(401, "RESPONSE_SESSION_AUTH_REQUIRED", "Response-session access is required.");
+      if (session.expires_at <= new Date() || session.status === "submitted" || session.status === "failed") {
+        throw new AppError(409, "SESSION_NOT_RECORDABLE", "This response session cannot start another recording.");
+      }
+      if (!await this.repository.questionBelongsToSurvey(client, questionId, session.survey_id)) {
+        throw notFound("SESSION_OR_QUESTION_NOT_FOUND");
+      }
+    });
+  }
+
   async submitResponse(clientSessionId: string, rawToken: string | undefined, consentVersion: string): Promise<SubmitResponseResult> {
     if (!rawToken) throw new AppError(401, "RESPONSE_SESSION_AUTH_REQUIRED", "Response-session access is required.");
     return this.repository.transaction(async (client) => {

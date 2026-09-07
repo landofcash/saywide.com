@@ -15,10 +15,15 @@ import { organizerRoutes } from "./routes/organizer.js";
 import { publicRoutes } from "./routes/public.js";
 import { surveyRoutes } from "./routes/surveys.js";
 import { SaywideService } from "./services/saywide-service.js";
+import {
+  AwsTranscriptionSessionSigner,
+  type TranscriptionSessionSigner,
+} from "./services/transcribe-session-signer.js";
 
 export interface BuildAppOptions {
   config: AppConfig;
   pool?: Pool;
+  transcriptionSessionSigner?: TranscriptionSessionSigner;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -53,10 +58,12 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
 
   app.register(async (scope) => {
     const service = new SaywideService(new SaywideRepository(scope.db), options.config);
+    const transcriptionSessionSigner = options.transcriptionSessionSigner
+      ?? new AwsTranscriptionSessionSigner(options.config);
     scope.register(healthRoutes(service));
     scope.register(organizerRoutes(service, options.config));
     scope.register(surveyRoutes(service, options.config));
-    scope.register(publicRoutes(service));
+    scope.register(publicRoutes(service, transcriptionSessionSigner, options.config));
   });
 
   app.setNotFoundHandler((request, reply) => {

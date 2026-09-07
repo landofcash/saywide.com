@@ -8,6 +8,6 @@ export const apiCapabilities: ApiCapabilities = {
   accounts: isMockApi,
   goalDrafting: isMockApi,
   reports: isMockApi,
-  voice: isMockApi,
+  voice: true,
 };
 export type { ApiCapabilities, SaywideApi } from "./types";

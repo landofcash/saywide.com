@@ -74,12 +74,12 @@ export function CreateSurveyScreen() {
             Hear what everyone has to say.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted)]">
-            Create an open-ended survey and collect thoughtful, anonymous answers in text.
+            Create an open-ended survey and collect thoughtful, anonymous answers by voice or text.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
             {(apiCapabilities.reports
               ? ["No sign-up to start", "Anonymous responses", "Evidence with every finding"]
-              : ["No sign-up to start", "Anonymous responses", "Text-only collection"]
+              : ["No sign-up to start", "Anonymous responses", apiCapabilities.voice ? "Voice or text responses" : "Text-only collection"]
             ).map((item) => (
               <span key={item} className="flex items-center gap-2"><Check className="size-4 text-emerald-700" /> {item}</span>
             ))}

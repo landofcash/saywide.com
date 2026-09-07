@@ -9,6 +9,7 @@ import type {
   SurveyDraftInput,
   SurveyStatus,
   SurveySummary,
+  TranscriptionSessionResponse,
 } from "@saywide/contracts";
 
 export interface SaywideApi {
@@ -24,6 +25,7 @@ export interface SaywideApi {
   getReport(reportId: string): Promise<Report>;
   getPublicSurvey(publicToken: string): Promise<PublicSurvey>;
   startResponse(publicToken: string, input: StartResponseInput): Promise<ResponseSession>;
+  createTranscriptionSession(publicToken: string, questionId: string): Promise<TranscriptionSessionResponse>;
   readAnswers(publicToken: string): Promise<ParticipantAnswers>;
   saveAnswer(publicToken: string, questionId: string, answer: string): Promise<void>;
   submitResponse(publicToken: string): Promise<{ submittedAt: string }>;
