@@ -10,7 +10,7 @@ import { OrganizerShell } from "@/components/organizer/organizer-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, apiCapabilities } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export function ShareScreen({ surveyId }: { surveyId: string }) {
@@ -74,7 +74,7 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild><Link href={`/surveys/${surveyId}`}>Survey overview</Link></Button>
           <Button asChild variant="secondary"><Link href="/dashboard"><LayoutDashboard className="size-4" /> My surveys</Link></Button>
-          <Button asChild variant="ghost"><Link href="/account/create"><ShieldCheck className="size-4" /> Protect surveys</Link></Button>
+          {apiCapabilities.accounts && <Button asChild variant="ghost"><Link href="/account/create"><ShieldCheck className="size-4" /> Protect surveys</Link></Button>}
         </div>
       </div>
     </OrganizerShell>

@@ -634,7 +634,7 @@ The backend discards model-provided count fields, validates references, calculat
 - Let the participant edit the transcript before final submission.
 - Store only short-lived request metadata needed for abuse and cost controls; do not maintain persistent device fingerprints.
 - Provide organizer-controlled retention for finalized response text and reports, plus a survey deletion action; this does not enable audio retention.
-- Prevent report generation below a configurable minimum group size; default to five.
+- Prevent report generation below a configurable minimum group size; default to two.
 
 ### 17.2 Security controls
 
@@ -940,7 +940,7 @@ These defaults are settled for the MVP unless implementation evidence forces a c
 | AWS stream authorization | Backend-generated SigV4-presigned WebSocket URL after Saywide session authorization; 60-second default connection window, 300-second hard maximum, and `Cache-Control: no-store`. |
 | Streaming audio target | 16 kHz, 16-bit mono PCM initially; verify capture and event-stream behavior on target mobile browsers before locking the implementation. |
 | Raw audio retention | None. Stream from browser memory and discard capture buffers; backend audio uploads, Amazon Transcribe batch jobs, and S3 audio objects are excluded from the MVP. |
-| Minimum report group size | Five submitted responses. |
+| Minimum report group size | Two submitted responses. |
 | Languages | One primary language in the MVP; preserve UTF-8 for future expansion. |
 | Report delivery | In-app page plus Markdown download. |
 | Deployment | Separate Railway `frontend` and `backend` services plus managed PostgreSQL in the existing project; commits to `main` deploy through service watch paths. |

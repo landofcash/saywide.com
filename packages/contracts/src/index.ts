@@ -8,9 +8,9 @@ export type ReportStatus = z.infer<typeof reportStatusSchema>;
 
 export const questionSchema = z.object({
   questionId: z.string(),
-  prompt: z.string().min(1),
+  prompt: z.string().trim().min(1).max(1000),
   required: z.boolean(),
-  position: z.number().int().nonnegative(),
+  position: z.number().int().min(0).max(4),
   warning: z.string().optional(),
 });
 export type Question = z.infer<typeof questionSchema>;
@@ -47,12 +47,20 @@ export const surveyDetailSchema = surveySummarySchema.extend({
 export type SurveyDetail = z.infer<typeof surveyDetailSchema>;
 
 export const surveyDraftInputSchema = z.object({
-  title: z.string().min(1),
-  introduction: z.string(),
+  title: z.string().trim().min(1).max(160),
+  introduction: z.string().trim().max(2000),
   questions: z.array(questionSchema.omit({ questionId: true })).min(1).max(5),
-  settings: surveySettingsSchema,
+  settings: surveySettingsSchema.extend({
+    minReportResponses: z.number().int().min(1).max(50),
+  }),
 });
 export type SurveyDraftInput = z.infer<typeof surveyDraftInputSchema>;
+
+export const surveyPatchInputSchema = surveyDraftInputSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  "At least one survey field is required.",
+);
+export type SurveyPatchInput = z.infer<typeof surveyPatchInputSchema>;
 
 export const reportSummarySchema = z.object({
   reportId: z.string(),
@@ -108,8 +116,97 @@ export type PublicSurvey = z.infer<typeof publicSurveySchema>;
 
 export const responseSessionSchema = z.object({
   sessionId: z.string(),
+  sessionToken: z.string().min(1),
   expiresAt: z.string(),
 });
 export type ResponseSession = z.infer<typeof responseSessionSchema>;
 
 export type ParticipantAnswers = Record<string, string>;
+
+export const apiErrorSchema = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    requestId: z.string(),
+    fields: z.record(z.string(), z.string()).optional(),
+  }),
+});
+export type ApiError = z.infer<typeof apiErrorSchema>;
+
+export const healthResponseSchema = z.object({ status: z.enum(["ok", "unavailable"]) });
+export type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+export const guestWorkspaceSchema = z.object({
+  workspace: z.object({
+    kind: z.literal("guest"),
+    recoveryRisk: z.literal("browser-bound"),
+    createdAt: z.string(),
+  }),
+});
+export type GuestWorkspace = z.infer<typeof guestWorkspaceSchema>;
+
+export const surveyListResponseSchema = z.object({
+  items: z.array(surveySummarySchema),
+  nextCursor: z.string().nullable(),
+});
+export type SurveyListResponse = z.infer<typeof surveyListResponseSchema>;
+
+export const publishSurveyResponseSchema = z.object({
+  surveyId: z.string(),
+  status: z.literal("open"),
+  shareUrl: z.string(),
+  publicToken: z.string(),
+  expiresAt: z.string().nullable(),
+});
+export type PublishSurveyResponse = z.infer<typeof publishSurveyResponseSchema>;
+
+export const surveyStatusResponseSchema = z.object({
+  surveyId: z.string(),
+  status: z.enum(["open", "closed"]),
+  shareUrl: z.string().optional(),
+  expiresAt: z.string().nullable().optional(),
+});
+export type SurveyStatusResponse = z.infer<typeof surveyStatusResponseSchema>;
+
+export const surveySummaryResponseSchema = z.object({
+  surveyId: z.string(),
+  status: surveyStatusSchema,
+  startedResponseCount: z.number().int().nonnegative(),
+  submittedResponseCount: z.number().int().nonnegative(),
+  reportEligible: z.boolean(),
+  minReportResponses: z.number().int().positive(),
+  expiresAt: z.string().nullable(),
+  lastSubmittedAt: z.string().nullable(),
+});
+export type SurveySummaryResponse = z.infer<typeof surveySummaryResponseSchema>;
+
+export const startResponseInputSchema = z.object({
+  consentVersion: z.string().trim().min(1).max(64),
+  accessCode: z.string().max(128).optional(),
+});
+export type StartResponseInput = z.infer<typeof startResponseInputSchema>;
+
+export const saveAnswerInputSchema = z.object({
+  finalText: z.string().max(10000),
+  inputMode: z.literal("text"),
+  audioStatus: z.literal("not_used"),
+});
+export type SaveAnswerInput = z.infer<typeof saveAnswerInputSchema>;
+
+export const saveAnswerResponseSchema = z.object({
+  questionId: z.string(),
+  savedAt: z.string(),
+});
+export type SaveAnswerResponse = z.infer<typeof saveAnswerResponseSchema>;
+
+export const submitResponseInputSchema = z.object({
+  consentVersion: z.string().trim().min(1).max(64),
+});
+export type SubmitResponseInput = z.infer<typeof submitResponseInputSchema>;
+
+export const submitResponseResultSchema = z.object({
+  submitted: z.literal(true),
+  submittedAt: z.string(),
+  publicResponseLabel: z.string(),
+});
+export type SubmitResponseResult = z.infer<typeof submitResponseResultSchema>;

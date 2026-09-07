@@ -9,7 +9,7 @@ import { Brand } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/form-controls";
-import { api } from "@/lib/api";
+import { api, apiCapabilities } from "@/lib/api";
 
 const example = "I want to understand what helped our remote team work well this quarter and where our process got in the way.";
 
@@ -50,7 +50,7 @@ export function CreateSurveyScreen() {
           <Brand />
           <nav className="hidden items-center gap-1 text-sm font-semibold sm:flex" aria-label="Organizer navigation">
             <Button variant="ghost" asChild><Link href="/dashboard">My surveys</Link></Button>
-            <Button variant="secondary" size="sm" asChild><Link href="/login">Sign in</Link></Button>
+            {apiCapabilities.accounts && <Button variant="secondary" size="sm" asChild><Link href="/login">Sign in</Link></Button>}
           </nav>
           <Button type="button" variant="ghost" size="icon" className="sm:hidden" aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-home-navigation" onClick={() => setMobileMenuOpen((open) => !open)}>
             {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -60,7 +60,7 @@ export function CreateSurveyScreen() {
           <nav id="mobile-home-navigation" className="absolute inset-x-0 top-full z-30 border-b border-[var(--line)] bg-white shadow-lg sm:hidden" aria-label="Mobile organizer navigation">
             <div className="px-4 py-2">
               <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 border-b border-[var(--line)] px-2 text-sm font-semibold"><LayoutDashboard className="size-5 text-[var(--coral-dark)]" /> My surveys</Link>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 px-2 text-sm font-semibold"><LogIn className="size-5 text-[var(--coral-dark)]" /> Sign in</Link>
+              {apiCapabilities.accounts && <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 px-2 text-sm font-semibold"><LogIn className="size-5 text-[var(--coral-dark)]" /> Sign in</Link>}
             </div>
           </nav>
         )}
@@ -74,17 +74,20 @@ export function CreateSurveyScreen() {
             Hear what everyone has to say.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted)]">
-            Create an open-ended survey, collect answers by voice or text, and turn them into a report grounded in real evidence.
+            Create an open-ended survey and collect thoughtful, anonymous answers in text.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
-            {['No sign-up to start', 'Anonymous responses', 'Evidence with every finding'].map((item) => (
+            {(apiCapabilities.reports
+              ? ["No sign-up to start", "Anonymous responses", "Evidence with every finding"]
+              : ["No sign-up to start", "Anonymous responses", "Text-only collection"]
+            ).map((item) => (
               <span key={item} className="flex items-center gap-2"><Check className="size-4 text-emerald-700" /> {item}</span>
             ))}
           </div>
         </section>
 
         <Card className="p-5 sm:p-8">
-          <div>
+          {apiCapabilities.goalDrafting ? <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Start with your goal</p>
             <h2 className="font-display mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">What do you want to learn?</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Describe the audience and the decision their perspective will help you make.</p>
@@ -121,7 +124,14 @@ export function CreateSurveyScreen() {
                 <Link href="/surveys/new"><PenLine className="size-4" /> Start manually</Link>
               </Button>
             </div>
-          </div>
+          </div> : <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Create a survey</p>
+            <h2 className="font-display mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">Start with your questions</h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Give the survey a title, add up to five open-ended questions, and choose when collection should close.</p>
+            <Button size="lg" variant="accent" className="mt-8 w-full" asChild>
+              <Link href="/surveys/new"><PenLine className="size-4" /> Build a survey</Link>
+            </Button>
+          </div>}
         </Card>
       </main>
     </div>

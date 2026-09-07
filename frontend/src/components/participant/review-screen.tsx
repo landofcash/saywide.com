@@ -25,9 +25,15 @@ export function ReviewScreen({ publicToken }: { publicToken: string }) {
   async function submit() {
     if (missing.length > 0) { setError("Please answer every required question before submitting."); return; }
     setSubmitting(true);
-    const result = await api.submitResponse(publicToken);
-    window.sessionStorage.setItem(`saywide.completed.${publicToken}`, result.submittedAt);
-    router.replace(`/s/${publicToken}/complete`);
+    setError("");
+    try {
+      const result = await api.submitResponse(publicToken);
+      window.sessionStorage.setItem(`saywide.completed.${publicToken}`, result.submittedAt);
+      router.replace(`/s/${publicToken}/complete`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Your response could not be submitted. Please try again.");
+      setSubmitting(false);
+    }
   }
 
   return (

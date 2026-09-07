@@ -9,7 +9,7 @@ import { OrganizerShell } from "@/components/organizer/organizer-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, apiCapabilities } from "@/lib/api";
 import { formatDate, pluralize } from "@/lib/utils";
 
 type Filter = "all" | SurveyStatus;
@@ -40,13 +40,13 @@ export function DashboardScreen() {
         <Button asChild variant="accent" size="lg"><Link href="/"><Plus className="size-5" /> New survey</Link></Button>
       </div>
 
-      <Card className="mt-8 flex flex-col gap-4 border-l-4 border-l-[var(--coral)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+      {apiCapabilities.accounts && <Card className="mt-8 flex flex-col gap-4 border-l-4 border-l-[var(--coral)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-[var(--mint-soft)]"><ShieldCheck className="size-5 text-emerald-800" /></span>
           <div><p className="font-bold">These surveys are saved to this browser</p><p className="mt-1 text-sm text-emerald-950/70">Create an account when you want recovery and access from another device.</p></div>
         </div>
         <Button asChild variant="secondary" size="sm"><Link href="/account/create">Protect my surveys</Link></Button>
-      </Card>
+      </Card>}
 
       <div className="mt-8 flex flex-wrap gap-2" aria-label="Filter surveys">
         {filters.map((item) => (
@@ -77,7 +77,7 @@ export function DashboardScreen() {
                     <div className="rounded-lg bg-[var(--canvas)] p-3"><p className="text-2xl font-bold">{survey.questionCount}</p><p className="text-xs text-[var(--muted)]">questions</p></div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--muted)]">
-                    <span className="flex items-center gap-1"><FileText className="size-3.5" /> {survey.reportState}</span>
+                    {apiCapabilities.reports && <span className="flex items-center gap-1"><FileText className="size-3.5" /> {survey.reportState}</span>}
                     <span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {survey.expiresAt ? `Ends ${formatDate(survey.expiresAt)}` : pluralize(survey.questionCount, "question")}</span>
                   </div>
                 </Card>

@@ -1,16 +1,14 @@
 import type {
   ParticipantAnswers,
-  PublicSurvey,
   Report,
-  ReportSummary,
-  ResponseSession,
+  StartResponseInput,
   SurveyDetail,
   SurveyDraftInput,
-  SurveyStatus,
   SurveySummary,
 } from "@saywide/contracts";
 
 import { createInitialState, type MockState } from "./mock-data";
+import type { SaywideApi } from "./types";
 
 const STATE_KEY = "saywide.mock-state.v1";
 const RESPONSE_PREFIX = "saywide.response.";
@@ -50,27 +48,6 @@ function getStoredAnswers(token: string): ParticipantAnswers {
   } catch {
     return {};
   }
-}
-
-export interface SaywideApi {
-  listSurveys(): Promise<SurveySummary[]>;
-  getSurvey(surveyId: string): Promise<SurveyDetail>;
-  draftSurveyFromGoal(goal: string): Promise<SurveyDetail>;
-  createSurvey(input: SurveyDraftInput): Promise<SurveyDetail>;
-  updateSurvey(surveyId: string, input: SurveyDraftInput): Promise<SurveyDetail>;
-  publishSurvey(surveyId: string): Promise<SurveyDetail>;
-  changeSurveyStatus(surveyId: string, status: Extract<SurveyStatus, "open" | "closed">): Promise<SurveyDetail>;
-  listReports(surveyId: string): Promise<ReportSummary[]>;
-  createReport(surveyId: string, instruction: string): Promise<Report>;
-  getReport(reportId: string): Promise<Report>;
-  getPublicSurvey(publicToken: string): Promise<PublicSurvey>;
-  startResponse(publicToken: string): Promise<ResponseSession>;
-  readAnswers(publicToken: string): Promise<ParticipantAnswers>;
-  saveAnswer(publicToken: string, questionId: string, answer: string): Promise<void>;
-  submitResponse(publicToken: string): Promise<{ submittedAt: string }>;
-  register(email: string, password: string): Promise<void>;
-  login(email: string, password: string): Promise<{ hasGuestSurveys: boolean }>;
-  claimGuestSurveys(): Promise<{ transferredSurveyCount: number }>;
 }
 
 function findSurvey(state: MockState, surveyId: string) {
@@ -121,7 +98,7 @@ export const mockSaywideApi: SaywideApi = {
         { prompt: "What has made the experience more difficult than it should be?", required: true, position: 1 },
         { prompt: "What is one practical change you would make next?", required: true, position: 2 },
       ],
-      settings: { expiresAt: null, hasAccessCode: false, minReportResponses: 5 },
+      settings: { expiresAt: null, hasAccessCode: false, minReportResponses: 2 },
     };
     const survey = makeSurvey(input);
     state.surveys.unshift(survey);
@@ -237,11 +214,16 @@ export const mockSaywideApi: SaywideApi = {
     };
   },
 
-  async startResponse(publicToken) {
+  async startResponse(publicToken, input: StartResponseInput) {
+    void input;
     await pause();
     const publicSurvey = await this.getPublicSurvey(publicToken);
     if (publicSurvey.status !== "open") throw new Error("This survey is no longer accepting responses.");
-    return { sessionId: `session-${Date.now()}`, expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() };
+    return {
+      sessionId: `session-${Date.now()}`,
+      sessionToken: `mock-token-${Date.now()}`,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    };
   },
 
   async readAnswers(publicToken) {

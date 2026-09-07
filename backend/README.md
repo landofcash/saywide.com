@@ -1,8 +1,44 @@
 # Saywide backend
 
-This directory is the boundary for the Fastify API described in
-[`docs/api-endpoints.md`](../docs/api-endpoints.md). It will be implemented after
-the production-shaped frontend and mock API contract are validated.
+This directory implements the anonymous-text Phase 1 API described in
+[`docs/api-endpoints.md`](../docs/api-endpoints.md): health, guest workspaces,
+manual survey CRUD/status, participant-safe survey reads, response sessions,
+answer upserts, and submission.
 
 The frontend never imports backend implementation code. Shared browser-safe
 schemas live in `packages/contracts`.
+
+## Local setup
+
+From the repository root:
+
+```powershell
+Copy-Item backend/.env.example backend/.env
+docker compose up -d postgres
+corepack pnpm db:migrate
+corepack pnpm dev:backend
+```
+
+The default development database is a dedicated PostgreSQL 18 container at
+`127.0.0.1:5433`; it does not reuse another local PostgreSQL service. Replace
+the development-only secret and database credentials before any deployment.
+
+Useful commands:
+
+```powershell
+corepack pnpm db:rollback
+corepack pnpm db:migrate
+corepack pnpm --filter @saywide/backend test
+```
+
+Integration tests create, migrate, exercise, and remove a disposable database.
+Set `TEST_DATABASE_ADMIN_URL` only when the local Docker default is unsuitable.
+The deterministic report fixture contains 24 synthetic responses and is kept
+under `backend/test`; no runtime seed endpoint exposes it.
+
+## Current boundary
+
+Account registration/login, guest claiming, goal-to-survey generation, voice
+transcription, and agent reports are intentionally not registered yet. When the
+frontend uses live HTTP mode, links and controls for those future capabilities
+are hidden or return a not-found page.

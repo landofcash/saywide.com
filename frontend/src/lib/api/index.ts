@@ -1,6 +1,13 @@
+import { httpSaywideApi } from "./http-client";
 import { mockSaywideApi } from "./mock-client";
+import type { ApiCapabilities } from "./types";
 
-// This is the only switch the UI needs when the Fastify service is ready.
-// A future HTTP adapter will implement the same SaywideApi interface.
-export const api = mockSaywideApi;
-export type { SaywideApi } from "./mock-client";
+export const isMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API === "true";
+export const api = isMockApi ? mockSaywideApi : httpSaywideApi;
+export const apiCapabilities: ApiCapabilities = {
+  accounts: isMockApi,
+  goalDrafting: isMockApi,
+  reports: isMockApi,
+  voice: isMockApi,
+};
+export type { ApiCapabilities, SaywideApi } from "./types";

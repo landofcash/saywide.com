@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Brand } from "@/components/brand";
 import { Button } from "@/components/ui/button";
+import { apiCapabilities } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 export function OrganizerShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
@@ -32,9 +33,9 @@ export function OrganizerShell({ children, wide = false }: { children: React.Rea
             <Button asChild size="sm">
               <Link href="/"><Plus className="size-4" /> New survey</Link>
             </Button>
-            <Button asChild variant="ghost" size="icon">
+            {apiCapabilities.accounts && <Button asChild variant="ghost" size="icon">
               <Link href="/login" aria-label="Sign in"><CircleUserRound className="size-5" /></Link>
-            </Button>
+            </Button>}
           </nav>
           <Button
             type="button"
@@ -54,7 +55,7 @@ export function OrganizerShell({ children, wide = false }: { children: React.Rea
             <div className="mx-auto max-w-[1440px] px-4 py-2">
               <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 border-b border-[var(--line)] px-2 text-sm font-semibold"><LayoutDashboard className="size-5 text-[var(--coral-dark)]" /> My surveys</Link>
               <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 border-b border-[var(--line)] px-2 text-sm font-semibold"><Plus className="size-5 text-[var(--coral-dark)]" /> New survey</Link>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 px-2 text-sm font-semibold"><LogIn className="size-5 text-[var(--coral-dark)]" /> Sign in</Link>
+              {apiCapabilities.accounts && <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-3 px-2 text-sm font-semibold"><LogIn className="size-5 text-[var(--coral-dark)]" /> Sign in</Link>}
             </div>
           </nav>
         )}

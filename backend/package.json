@@ -1,0 +1,41 @@
+{
+  "name": "@saywide/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "dotenv -e .env -- node-pg-migrate up -j ts -m migrations",
+    "db:migrate:deploy": "node-pg-migrate up -j ts -m migrations",
+    "db:rollback": "dotenv -e .env -- node-pg-migrate down -j ts -m migrations"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/helmet": "^13.1.1",
+    "@fastify/rate-limit": "^11.2.0",
+    "@saywide/contracts": "workspace:*",
+    "fastify": "^5.12.3",
+    "fastify-plugin": "^6.0.0",
+    "fastify-type-provider-zod": "^7.0.0",
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.0",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "26.1.1",
+    "@types/pg": "^8.23.1",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "9.39.5",
+    "tsx": "^4.23.13",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "4.1.10"
+  }
+}

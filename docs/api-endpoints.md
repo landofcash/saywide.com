@@ -6,6 +6,15 @@
 
 This document defines the Fastify backend endpoints used by the Saywide frontend. It is the API companion to the [development specification](../development-spec.md) and [database structure](database-structure.md).
 
+### 1.1 Implementation status
+
+The current Phase 1 backend implements health, guest-session creation and
+restoration, manual survey creation/read/update/publish/close/reopen/summary,
+public survey reads, anonymous response sessions, text answer upserts, and
+submission. Account, survey-generation agent, transcription, and report routes
+below remain the target contract and are not registered yet. The frontend hides
+those capabilities whenever `NEXT_PUBLIC_USE_MOCK_API=false`.
+
 The production API origin is intended to be `https://api.saywide.com`. Paths below are relative to that origin. The public participant page remains on the frontend at `https://saywide.com/s/{publicToken}` and loads its data from this API.
 
 ## 2. API conventions

@@ -8,11 +8,17 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "corepack pnpm --filter @saywide/frontend dev",
-    "build": "corepack pnpm --filter @saywide/frontend build",
+    "dev": "corepack pnpm --parallel --filter @saywide/frontend --filter @saywide/backend dev",
+    "dev:frontend": "corepack pnpm --filter @saywide/frontend dev",
+    "dev:backend": "corepack pnpm --filter @saywide/backend dev",
+    "build": "corepack pnpm --filter @saywide/contracts typecheck && corepack pnpm --filter @saywide/backend build && corepack pnpm --filter @saywide/frontend build",
     "start": "corepack pnpm --filter @saywide/frontend start",
-    "lint": "corepack pnpm --filter @saywide/frontend lint",
-    "test": "corepack pnpm --filter @saywide/frontend test",
-    "typecheck": "corepack pnpm --filter @saywide/contracts typecheck && corepack pnpm --filter @saywide/frontend typecheck"
+    "lint": "corepack pnpm --filter @saywide/backend lint && corepack pnpm --filter @saywide/frontend lint",
+    "test": "corepack pnpm --filter @saywide/backend test && corepack pnpm --filter @saywide/frontend test",
+    "typecheck": "corepack pnpm --filter @saywide/contracts typecheck && corepack pnpm --filter @saywide/backend typecheck && corepack pnpm --filter @saywide/frontend typecheck",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "corepack pnpm --filter @saywide/backend db:migrate",
+    "db:rollback": "corepack pnpm --filter @saywide/backend db:rollback"
   }
 }

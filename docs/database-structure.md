@@ -104,7 +104,7 @@ Stores organizer-owned survey metadata, publication state, privacy controls, and
 | `intro` | `text` | No | `''` | Short participant-facing purpose and context for the survey. |
 | `status` | `text` | No | `'draft'` | Lifecycle state: `draft`, `open`, `closed`, or `archived`. Only open surveys accept new response sessions. |
 | `access_code_hash` | `text` | Yes | `NULL` | Encoded password hash for an optional participant access code. Null when the public link alone is sufficient. |
-| `min_report_responses` | `smallint` | No | `5` | Minimum number of submitted response sessions required before report generation. Must be at least 1. |
+| `min_report_responses` | `smallint` | No | `2` | Minimum number of submitted response sessions required before report generation. Must be at least 1. |
 | `expires_at` | `timestamptz` | Yes | `NULL` | Optional time after which new response sessions are rejected. Null means no scheduled expiry. |
 | `created_at` | `timestamptz` | No | `now()` | Time the survey draft was created. |
 | `updated_at` | `timestamptz` | No | `now()` | Time the editable survey metadata, settings, or lifecycle state last changed. |
@@ -149,7 +149,7 @@ Stores the participant-approved final text for one survey question. It never sto
 |---|---|---:|---|---|
 | `id` | `uuid` | No | Application generated | Primary key for the answer. |
 | `response_session_id` | `uuid` | No | — | Foreign key to `response_session.id`. Uses `ON DELETE CASCADE`. |
-| `question_id` | `uuid` | No | — | Foreign key to `question.id`. Uses `ON DELETE RESTRICT` after responses exist. The question and response session must belong to the same survey. |
+| `question_id` | `uuid` | No | — | Deferred foreign key to `question.id`. A question referenced by an answer cannot be deleted alone, while deleting the owning survey can cascade the complete graph atomically. The question and response session must belong to the same survey. |
 | `final_text` | `text` | No | — | Participant-reviewed answer text used for reporting. Required answers must not be blank at submission. |
 | `input_mode` | `text` | No | — | How the final answer originated: `text` or `voice`. Voice still stores only approved text. |
 | `audio_status` | `text` | No | `'not_used'` | Audio-processing outcome: `not_used`, `streamed_and_discarded`, or `failed_and_discarded`. It is metadata only and never points to an audio object. |
@@ -246,7 +246,7 @@ Records that one distinct response session supports one finding and identifies t
 |---|---|---:|---|---|
 | `finding_id` | `uuid` | No | — | Foreign key to `finding.id`. Uses `ON DELETE CASCADE`. Part of the composite primary key. |
 | `response_session_id` | `uuid` | No | — | Foreign key to an eligible submitted `response_session`. Uses `ON DELETE CASCADE`. Part of the composite primary key, so one response contributes at most one count to a finding. |
-| `question_id` | `uuid` | No | — | Foreign key to the question containing the representative supporting answer. The question, response session, finding, and report must ultimately belong to the same survey snapshot. |
+| `question_id` | `uuid` | No | — | Deferred foreign key to the question containing the representative supporting answer. The question, response session, finding, and report must ultimately belong to the same survey snapshot. |
 | `reason` | `text` | No | — | Short, safe rationale for the semantic assignment. It must not contain hidden prompts or unrelated response text. |
 | `validated` | `boolean` | No | `false` | Whether deterministic validation confirmed the referenced response/question relationship and eligibility. Only validated rows contribute to final counts. |
 | `created_at` | `timestamptz` | No | `now()` | Time the proposed assignment was persisted. |
@@ -266,6 +266,24 @@ Stores a privacy-reviewed excerpt that supports one finding and links it to the 
 | `public_response_label` | `text` | No | — | Snapshot of the response's pseudonymous label used in the report UI. It avoids displaying internal IDs and remains stable if labeling logic later changes. |
 | `created_at` | `timestamptz` | No | `now()` | Time the validated evidence item was persisted. |
 
+### 4.15 `idempotency_operation`
+
+Stores bounded retry records for operations where a lost HTTP response must not
+create a second survey or anonymous response session. This is operational state
+in addition to the fourteen product-domain tables above.
+
+| Field | PostgreSQL type | Nullable | Default | Description |
+|---|---|---:|---|---|
+| `id` | `uuid` | No | Application generated | Primary key and non-secret derivation input for retryable response sessions. |
+| `scope_kind` | `text` | No | — | Retry scope: `organizer` or `public_survey`. |
+| `scope_id` | `uuid` | No | — | Authorized organizer or internal public-survey context. It is not exposed to the caller. |
+| `operation` | `text` | No | — | Stable operation name such as `create_survey` or `start_response`. |
+| `key_hash` | `bytea` | No | — | One-way hash of the caller's idempotency key; the raw header is never stored. |
+| `request_hash` | `bytea` | No | — | Canonical request-body hash used to reject reuse with different input. |
+| `resource_id` | `uuid` | No | — | Internal resource produced by the successful operation. |
+| `expires_at` | `timestamptz` | No | — | Bounded time until the retry record may be removed. |
+| `created_at` | `timestamptz` | No | `now()` | Time the protected operation completed. |
+
 ## 5. Required constraints and indexes
 
 ### 5.1 Unique constraints
@@ -281,6 +299,7 @@ Stores a privacy-reviewed excerpt that supports one finding and links it to the 
 - Unique `report.report_request_id`.
 - Unique (`finding.report_id`, `finding.position`).
 - Composite primary key (`theme_assignment.finding_id`, `theme_assignment.response_session_id`).
+- Unique (`idempotency_operation.scope_kind`, `scope_id`, `operation`, `key_hash`).
 
 ### 5.2 Check constraints
 
@@ -306,6 +325,7 @@ Stores a privacy-reviewed excerpt that supports one finding and links it to the 
 - `agent_run(report_request_id, created_at DESC)` for retries and trace lookup.
 - `agent_event(agent_run_id, sequence)` for ordered progress streaming.
 - `finding(report_id, position)` and `evidence(finding_id, created_at)` for report rendering.
+- `idempotency_operation(expires_at)` for bounded cleanup.
 
 ### 5.4 Cross-table invariants
 
@@ -329,6 +349,7 @@ These invariants must be enforced transactionally in backend services. Straightf
 - Deleting a survey cascades through questions, response sessions, answers, report requests, agent runs, events, reports, findings, assignments, and evidence.
 - Deleting an organizer cascades through its active credentials, account sessions, and owned surveys. A registered organizer referenced by a merge tombstone cannot be deleted until that relationship is explicitly resolved.
 - Expired or abandoned response sessions may be deleted after a short operational retention window, provided they were never submitted.
+- Expired idempotency records are operational data and may be deleted after `expires_at`.
 - Finalized response text and reports follow the organizer-controlled retention policy. Raw audio requires no cleanup job because it is never durably stored.
 
 ## 7. Migration ownership

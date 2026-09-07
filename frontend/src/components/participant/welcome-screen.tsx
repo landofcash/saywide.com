@@ -9,7 +9,7 @@ import { ParticipantShell } from "@/components/participant/participant-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/form-controls";
-import { api } from "@/lib/api";
+import { api, apiCapabilities } from "@/lib/api";
 import { hasSubmittedFromBrowser, saveParticipantSession } from "@/lib/participant-state";
 import { pluralize } from "@/lib/utils";
 
@@ -31,7 +31,10 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
     setStarting(true);
     setError("");
     try {
-      const session = await api.startResponse(publicToken);
+      const session = await api.startResponse(publicToken, {
+        consentVersion: survey!.consentVersion,
+        accessCode: accessCode || undefined,
+      });
       saveParticipantSession(publicToken, session.sessionId);
       router.push(`/s/${publicToken}/respond`);
     } catch (reason) {
@@ -54,10 +57,10 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
       <Card className="mt-6 p-5 sm:p-7">
         <div className="grid grid-cols-2 gap-3"><div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time</p><p className="mt-2 text-lg font-bold">About {survey.estimatedMinutes} min</p></div><div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions</p><p className="mt-2 text-lg font-bold">{pluralize(survey.questions.length, "question")}</p></div></div>
         {survey.requiresAccessCode && <div className="mt-6"><Label htmlFor="access-code">Access code</Label><Input id="access-code" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="one-time-code" /></div>}
-        <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-[var(--muted)]"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-700" />Anonymous participation. Only the text you review is submitted; voice audio is not retained.</p>
+        <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-[var(--muted)]"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-700" />Anonymous participation. Only the text you review is submitted.</p>
         <p className="mt-4 text-xs leading-5 text-[var(--muted)]">By starting, you agree to submit your reviewed text for this survey&apos;s stated purpose.</p>
         <Button variant="accent" size="lg" className="mt-5 w-full" onClick={start} disabled={starting || (survey.requiresAccessCode && !accessCode)}>{starting ? "Starting…" : <>Start survey <ArrowRight className="size-5" /></>}</Button>
-        <div className="mt-7 space-y-4 border-t border-[var(--line)] pt-6"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Privacy and response options</p><div className="flex gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-700" /><div><p className="font-bold">No name, email, or account</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Your words are combined with other responses. Short excerpts may appear as anonymous evidence.</p></div></div><div className="flex gap-3"><Mic className="mt-0.5 size-5 shrink-0 text-[var(--coral-dark)]" /><div><p className="font-bold">Speak or type every answer</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Voice is transcribed immediately and audio is not retained. You review all text before submitting.</p></div></div><div className="flex gap-3"><Keyboard className="mt-0.5 size-5 shrink-0 text-slate-600" /><div><p className="font-bold">Typing always works</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">You never need to allow microphone access to complete this survey.</p></div></div></div>
+        <div className="mt-7 space-y-4 border-t border-[var(--line)] pt-6"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Privacy and response options</p><div className="flex gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-700" /><div><p className="font-bold">No name, email, or account</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Your words are combined with other responses. Short excerpts may appear as anonymous evidence.</p></div></div>{apiCapabilities.voice && <div className="flex gap-3"><Mic className="mt-0.5 size-5 shrink-0 text-[var(--coral-dark)]" /><div><p className="font-bold">Speak or type every answer</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Voice is transcribed immediately and audio is not retained. You review all text before submitting.</p></div></div>}<div className="flex gap-3"><Keyboard className="mt-0.5 size-5 shrink-0 text-slate-600" /><div><p className="font-bold">Type every answer</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Your draft stays editable until you submit it.</p></div></div></div>
       </Card>
     </ParticipantShell>
   );

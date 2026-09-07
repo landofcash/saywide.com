@@ -22,7 +22,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   const [introduction, setIntroduction] = useState("");
   const [questions, setQuestions] = useState<DraftQuestion[]>([blankQuestion(0)]);
   const [expiresAt, setExpiresAt] = useState("");
-  const [minResponses, setMinResponses] = useState(5);
+  const [minResponses, setMinResponses] = useState(2);
   const [loading, setLoading] = useState(Boolean(surveyId));
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
@@ -168,7 +168,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
             </div>
             <div className="mt-5">
               <Label htmlFor="minimum">Minimum responses for a report</Label>
-              <Input id="minimum" type="number" min={3} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
+              <Input id="minimum" type="number" min={1} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
               <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
             </div>
             <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">

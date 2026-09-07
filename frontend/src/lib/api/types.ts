@@ -1,0 +1,40 @@
+import type {
+  ParticipantAnswers,
+  PublicSurvey,
+  Report,
+  ReportSummary,
+  ResponseSession,
+  StartResponseInput,
+  SurveyDetail,
+  SurveyDraftInput,
+  SurveyStatus,
+  SurveySummary,
+} from "@saywide/contracts";
+
+export interface SaywideApi {
+  listSurveys(): Promise<SurveySummary[]>;
+  getSurvey(surveyId: string): Promise<SurveyDetail>;
+  draftSurveyFromGoal(goal: string): Promise<SurveyDetail>;
+  createSurvey(input: SurveyDraftInput): Promise<SurveyDetail>;
+  updateSurvey(surveyId: string, input: SurveyDraftInput): Promise<SurveyDetail>;
+  publishSurvey(surveyId: string): Promise<SurveyDetail>;
+  changeSurveyStatus(surveyId: string, status: Extract<SurveyStatus, "open" | "closed">): Promise<SurveyDetail>;
+  listReports(surveyId: string): Promise<ReportSummary[]>;
+  createReport(surveyId: string, instruction: string): Promise<Report>;
+  getReport(reportId: string): Promise<Report>;
+  getPublicSurvey(publicToken: string): Promise<PublicSurvey>;
+  startResponse(publicToken: string, input: StartResponseInput): Promise<ResponseSession>;
+  readAnswers(publicToken: string): Promise<ParticipantAnswers>;
+  saveAnswer(publicToken: string, questionId: string, answer: string): Promise<void>;
+  submitResponse(publicToken: string): Promise<{ submittedAt: string }>;
+  register(email: string, password: string): Promise<void>;
+  login(email: string, password: string): Promise<{ hasGuestSurveys: boolean }>;
+  claimGuestSurveys(): Promise<{ transferredSurveyCount: number }>;
+}
+
+export interface ApiCapabilities {
+  accounts: boolean;
+  goalDrafting: boolean;
+  reports: boolean;
+  voice: boolean;
+}

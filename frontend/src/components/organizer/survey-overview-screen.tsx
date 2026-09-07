@@ -9,7 +9,7 @@ import { OrganizerShell } from "@/components/organizer/organizer-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { api, apiCapabilities } from "@/lib/api";
 import { formatDate, formatDateTime, pluralize } from "@/lib/utils";
 
 export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
@@ -19,7 +19,10 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    void Promise.all([api.getSurvey(surveyId), api.listReports(surveyId)]).then(([surveyItem, reportItems]) => {
+    void Promise.all([
+      api.getSurvey(surveyId),
+      apiCapabilities.reports ? api.listReports(surveyId) : Promise.resolve([]),
+    ]).then(([surveyItem, reportItems]) => {
       setSurvey(surveyItem);
       setReports(reportItems);
     });
@@ -70,7 +73,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
         <Metric label="Closes" value={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt, { month: "short", day: "numeric" }) : "Manual"} detail={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt) : "No expiry set"} accent="coral" />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
+      {apiCapabilities.reports && <div className="mt-6 grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
         <Card className="p-6 sm:p-7">
           <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Report readiness</p><h2 className="font-display mt-2 text-2xl font-bold">{thresholdMet ? "Ready to understand" : "Keep collecting"}</h2></div><BarChart3 className="size-6" /></div>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{thresholdMet ? `${survey.submittedResponseCount} responses can be included in a new frozen snapshot.` : `${survey.settings.minReportResponses - survey.submittedResponseCount} more responses are needed for the privacy threshold.`}</p>
@@ -91,7 +94,7 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
             </div>
           )}
         </Card>
-      </div>
+      </div>}
 
       <div className="mt-6 flex flex-wrap gap-2">
         {participantPath && <Button variant="secondary" asChild><a href={participantPath} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /> Participant preview</a></Button>}
