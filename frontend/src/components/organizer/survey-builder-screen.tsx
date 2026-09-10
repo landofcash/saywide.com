@@ -1,10 +1,10 @@
 "use client";
 
 import type { SurveyDraftInput } from "@saywide/contracts";
-import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, Eye, GripVertical, Plus, Send, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, Eye, GripVertical, Plus, Send, Trash2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
 import { SurveyWritingControls } from "@/components/organizer/survey-writing-controls";
@@ -30,6 +30,13 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   const [preview, setPreview] = useState(false);
   const [currentId, setCurrentId] = useState(surveyId);
   const [writingBusy, setWritingBusy] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [step]);
 
   useEffect(() => {
     if (!surveyId) return;
@@ -43,7 +50,8 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
     });
   }, [surveyId]);
 
-  const valid = title.trim().length > 0 && questions.length > 0 && questions.every((question) => question.prompt.trim().length > 0);
+  const descriptionValid = title.trim().length > 0 && Number.isInteger(minResponses) && minResponses >= 1 && minResponses <= 50;
+  const valid = descriptionValid && questions.length > 0 && questions.every((question) => question.prompt.trim().length > 0);
 
   function input(): SurveyDraftInput {
     return {
@@ -107,12 +115,14 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
-          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Describe your survey</h1>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Step {step} of 2 · {step === 1 ? "Survey details" : "Questions"}</p>
+          <h1 ref={headingRef} tabIndex={-1} className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] outline-none sm:text-4xl">{step === 1 ? "Describe your survey" : "Add your questions"}</h1>
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-5">
+          <div hidden={step !== 1} className="space-y-5">
           <Card className="p-5 sm:p-7">
             <div className="space-y-3 text-sm leading-6 text-[var(--muted)]">
               <p>Say your survey name and what participants should know, AI can polish the wording.</p>
@@ -157,10 +167,11 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
                   <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
                 </div>
               </details>
-              <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving || writingBusy}>{saving ? "Saving…" : "Save draft"}</Button>
             </Card>
           </section>
+          </div>
 
+          <div hidden={step !== 2} className="space-y-5">
           <div className="flex items-end justify-between">
             <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p><h2 className="font-display mt-1 text-2xl font-bold">One clear thought at a time</h2></div>
             <span className="text-sm font-semibold text-[var(--muted)]">{questions.length} / 5</span>
@@ -188,16 +199,24 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           ))}
 
           <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={questions.length >= 5}><Plus className="size-4" /> Add question</Button>
+          </div>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+      {step === 1 ? (
+        <div className="mt-6 flex flex-col items-end gap-2">
+          {!descriptionValid && <p className="text-sm text-[var(--muted)]">{!title.trim() ? "Enter a survey title to continue." : "In Additional settings, choose a minimum of 1–50 responses."}</p>}
+          <Button variant="accent" onClick={() => setStep(2)} disabled={!descriptionValid || saving || writingBusy}>Next: Questions <ArrowRight className="size-4" /></Button>
+        </div>
+      ) : <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+        <Button variant="ghost" className="mr-auto" onClick={() => setStep(1)} disabled={saving}><ArrowLeft className="size-4" /> Back</Button>
         <span className="hidden text-xs font-semibold text-[var(--muted)] sm:inline" aria-live="polite">
           {saving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Could not save" : "Not saved yet"}
         </span>
+        <Button variant="secondary" onClick={() => void save()} disabled={!valid || saving || writingBusy}>{saving ? "Saving…" : "Save draft"}</Button>
         <Button variant="secondary" onClick={() => setPreview(true)}><Eye className="size-4" /> Preview</Button>
         <Button variant="accent" onClick={publish} disabled={!valid || saving || writingBusy}><Send className="size-4" /> Publish survey</Button>
-      </div>
+      </div>}
 
       {preview && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-[var(--ink)]/45 p-4" role="dialog" aria-modal="true" aria-labelledby="preview-title">
