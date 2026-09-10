@@ -116,7 +116,8 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
           <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Step {step} of 2 · {step === 1 ? "Survey details" : "Questions"}</p>
-          <h1 ref={headingRef} tabIndex={-1} className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] outline-none sm:text-4xl">{step === 1 ? "Describe your survey" : "Add your questions"}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] outline-none sm:text-4xl">{step === 1 ? "Describe your survey" : "Shape your questions"}</h1>
+          {step === 2 && <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Speak your questions naturally, then let AI polish them for clarity. Review and edit each question before adding the next one.</p>}
         </div>
       </div>
 
