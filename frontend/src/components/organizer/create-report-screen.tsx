@@ -49,7 +49,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
     <OrganizerShell>
       <Link href={`/surveys/${surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link>
       <div className="mx-auto mt-5 max-w-4xl">
-        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">New evidence-backed report</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What do you need to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Ask in plain language. Saywide will find patterns, verify support, and keep every material finding connected to response evidence.</p></div>
+        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Say what your report should focus on. Saywide will find the patterns, show the responses behind them, and create it for you.</p></div>
         <Card className="mt-8 p-5 sm:p-8">
           <div className="flex flex-col gap-4 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="font-bold">{survey.title}</p><p className="mt-1 text-sm text-emerald-950/70">{pluralize(eligible, "submitted response")} available now</p></div>
