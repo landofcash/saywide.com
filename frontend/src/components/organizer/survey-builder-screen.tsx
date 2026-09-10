@@ -195,7 +195,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
             </Card>
           ))}
 
-          <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={writingBusy || saving}><Plus className="size-4" /> Add question</Button>
+          <Button variant="accent" size="lg" className="w-full shadow-sm sm:w-auto" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={writingBusy || saving}><Plus className="size-5" /> Add question</Button>
           </div>
         </div>
       </div>
