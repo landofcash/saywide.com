@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
+import { SurveyWritingControls } from "@/components/organizer/survey-writing-controls";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/form-controls";
@@ -26,12 +27,13 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
   const [survey, setSurvey] = useState<SurveyDetail | null>(null);
   const [instruction, setInstruction] = useState("");
   const [creating, setCreating] = useState(false);
+  const [writingBusy, setWritingBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => { void api.getSurvey(surveyId).then(setSurvey); }, [surveyId]);
 
   async function create() {
-    if (!survey || instruction.trim().length < 12) return;
+    if (!survey || instruction.trim().length < 12 || writingBusy || creating) return;
     setCreating(true);
     setError("");
     try {
@@ -57,10 +59,11 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div><p className="font-bold">{survey.title}</p><p className="mt-1 text-sm text-emerald-950/70">{pluralize(eligible, "submitted response")} available now</p></div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
-          <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="text-base leading-7" /></div>
+          <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="text-base leading-7" /></div>
+          <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {examples.map((example) => (
-              <button key={example.title} type="button" onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
+              <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
                 <span className="block text-sm font-bold">{example.title}</span>
                 <span className="mt-2 block text-xs leading-5 text-[var(--muted)]">{example.description}</span>
               </button>
@@ -72,7 +75,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           <p className="mt-5 text-xs leading-5 text-[var(--muted)]">The snapshot is fixed when you start. New responses can be included in a later report. Current time: {formatDateTime(new Date().toISOString())}.</p>
           {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
           {!allowed && <p role="alert" className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Collect {survey.settings.minReportResponses - eligible} more responses before creating a report.</p>}
-          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
+          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating || writingBusy} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
         </Card>
       </div>
     </OrganizerShell>

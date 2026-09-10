@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { startTranscribeStream, type TranscribeStreamController } from "@/lib/audio/transcribe-stream";
 
 interface Props {
-  field: "title" | "introduction" | "question";
+  field: "title" | "introduction" | "question" | "report-instruction";
   fieldLabel?: string;
   value: string;
   disabled: boolean;
@@ -27,7 +27,7 @@ export function SurveyWritingControls({ field, fieldLabel, value, disabled, onCh
   const requestId = useRef(0);
   const pending = useRef(false);
   const maxLength = field === "title" ? 160 : field === "question" ? 1000 : 2000;
-  const label = fieldLabel ?? (field === "title" ? "title" : field === "question" ? "question" : "participant introduction");
+  const label = fieldLabel ?? (field === "title" ? "title" : field === "question" ? "question" : field === "report-instruction" ? "report instruction" : "participant introduction");
 
   useEffect(() => () => {
     requestId.current += 1;
@@ -92,7 +92,7 @@ export function SurveyWritingControls({ field, fieldLabel, value, disabled, onCh
   }
 
   async function polish() {
-    if (pending.current || disabled || !value.trim()) return;
+    if (field === "report-instruction" || pending.current || disabled || !value.trim()) return;
     pending.current = true;
     const id = ++requestId.current;
     setError("");
@@ -126,9 +126,9 @@ export function SurveyWritingControls({ field, fieldLabel, value, disabled, onCh
             <Mic className="size-4" /> {phase === "starting" ? "Connecting…" : phase === "finishing" ? "Finishing…" : "Use voice"}
           </Button>
         )}
-        <Button type="button" variant="ghost" size="sm" disabled={disabled || phase !== "idle" || !value.trim()} onClick={() => void polish()} aria-label={`Polish ${label} with AI`}>
+        {field !== "report-instruction" && <Button type="button" variant="ghost" size="sm" disabled={disabled || phase !== "idle" || !value.trim()} onClick={() => void polish()} aria-label={`Polish ${label} with AI`}>
           <Sparkles className="size-4" /> {phase === "polishing" ? "Polishing…" : "Polish with AI"}
-        </Button>
+        </Button>}
       </div>
       <p className="mt-2 text-xs leading-5 text-[var(--muted)]" role="status">
         {phase === "recording" ? (partial || "Listening… speak naturally, then stop to review.") : phase === "finishing" ? "Finishing your transcript…" : message}
