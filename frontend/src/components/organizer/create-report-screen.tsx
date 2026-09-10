@@ -61,7 +61,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
           <section className="mt-7" aria-labelledby="suggested-reports-heading">
-            <h2 id="suggested-reports-heading" className="text-xs font-semibold text-[var(--muted)]">Suggestions</h2>
+            <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {examples.map((example) => (
               <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="min-h-11 rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)] aria-pressed:text-[var(--coral-dark)]">
@@ -71,7 +71,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           </div>
           </section>
           <section className="mt-8 border-t border-[var(--line)] pt-7" aria-labelledby="custom-report-heading">
-            <h2 id="custom-report-heading" className="text-xs font-semibold text-[var(--muted)]">Create your own</h2>
+            <h2 id="custom-report-heading" className="text-xl font-bold">Create your own</h2>
             <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
             <Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
             <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
