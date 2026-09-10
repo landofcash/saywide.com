@@ -15,9 +15,9 @@ import { api } from "@/lib/api";
 import { formatDateTime, pluralize } from "@/lib/utils";
 
 const examples = [
-  { title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
-  { title: "Show what came up most often", description: "Find the most frequently mentioned themes, concerns, and suggestions." },
-  { title: "Suggest practical next steps", description: "Turn the responses into useful recommendations." },
+  { label: "Overall picture", title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
+  { label: "Common themes", title: "Show what came up most often", description: "Find the most frequently mentioned themes, concerns, and suggestions." },
+  { label: "Next steps", title: "Suggest practical next steps", description: "Turn the responses into useful recommendations." },
 ];
 
 const presetInstruction = (example: typeof examples[number]) => `${example.title}. ${example.description}`;
@@ -61,13 +61,11 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
           <section className="mt-7" aria-labelledby="suggested-reports-heading">
-            <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggested reports</h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">Choose one to get started.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <h2 id="suggested-reports-heading" className="text-xs font-semibold text-[var(--muted)]">Suggestions</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
             {examples.map((example) => (
-              <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
-                <span className="block text-sm font-bold">{example.title}</span>
-                <span className="mt-2 block text-xs leading-5 text-[var(--muted)]">{example.description}</span>
+              <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="min-h-11 rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)] aria-pressed:text-[var(--coral-dark)]">
+                {example.label}
               </button>
             ))}
           </div>
