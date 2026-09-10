@@ -107,14 +107,14 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
-          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Set up your survey</h1>
+          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Describe your survey</h1>
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-5">
           <Card className="p-5 sm:p-7">
-            <p className="text-sm leading-6 text-[var(--muted)]">Say or type your survey name and what participants should know, such as its purpose and how their responses will be used. Polish the wording with AI if you like, then choose the closing date below.</p>
+            <p className="text-sm leading-6 text-[var(--muted)]">Say your survey name and what participants should know, such as its purpose and how their responses will be used. AI can polish the wording if you like. In Additional settings, you can choose a closing date and set the minimum number of responses required to generate a report.</p>
             <div className="mt-5">
               <Label htmlFor="survey-title">Title</Label>
               <Input id="survey-title" maxLength={160} readOnly={writingBusy} value={title} onChange={(event) => { setTitle(event.target.value); setSaveState("idle"); }} placeholder="Quarterly team retrospective" />
