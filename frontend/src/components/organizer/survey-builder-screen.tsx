@@ -107,19 +107,13 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
           <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Shape the questions</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="hidden text-xs font-semibold text-[var(--muted)] sm:inline" aria-live="polite">
-            {saving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Could not save" : "Not saved yet"}
-          </span>
-          <Button variant="secondary" onClick={() => setPreview(true)}><Eye className="size-4" /> Preview</Button>
-          <Button variant="accent" onClick={publish} disabled={!valid || saving}><Send className="size-4" /> Publish survey</Button>
-        </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="space-y-6">
         <div className="space-y-5">
           <Card className="p-5 sm:p-7">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Survey introduction</p>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Say your survey name, what participants should know (such as its purpose and how their responses will be used) and when the survey should close.</p>
             <div className="mt-5">
               <Label htmlFor="survey-title">Title</Label>
               <Input id="survey-title" value={title} onChange={(event) => { setTitle(event.target.value); setSaveState("idle"); }} placeholder="Quarterly team retrospective" />
@@ -129,6 +123,26 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
               <Textarea id="survey-introduction" rows={4} value={introduction} onChange={(event) => { setIntroduction(event.target.value); setSaveState("idle"); }} placeholder="Why you are asking and how answers will be used." />
             </div>
           </Card>
+
+          <section aria-label="Collection settings">
+            <Card className="p-5 sm:p-7">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Collection settings</p>
+              <div className="mt-5">
+                <Label htmlFor="expiry">Close on</Label>
+                <Input id="expiry" type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
+              </div>
+              <div className="mt-5">
+                <Label htmlFor="minimum">Minimum responses for a report</Label>
+                <Input id="minimum" type="number" min={1} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
+                <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
+              </div>
+              <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">
+                <p className="font-bold">Participant privacy</p>
+                <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
+              </div>
+              <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving}>{saving ? "Saving…" : "Save draft"}</Button>
+            </Card>
+          </section>
 
           <div className="flex items-end justify-between">
             <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p><h2 className="font-display mt-1 text-2xl font-bold">One clear thought at a time</h2></div>
@@ -158,26 +172,14 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
 
           <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={questions.length >= 5}><Plus className="size-4" /> Add question</Button>
         </div>
+      </div>
 
-        <aside className="space-y-5">
-          <Card className="p-6 xl:sticky xl:top-28">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Collection settings</p>
-            <div className="mt-5">
-              <Label htmlFor="expiry">Close on</Label>
-              <Input id="expiry" type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
-            </div>
-            <div className="mt-5">
-              <Label htmlFor="minimum">Minimum responses for a report</Label>
-              <Input id="minimum" type="number" min={1} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
-              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
-            </div>
-            <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">
-              <p className="font-bold">Participant privacy</p>
-              <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
-            </div>
-            <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving}>{saving ? "Saving…" : "Save draft"}</Button>
-          </Card>
-        </aside>
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+        <span className="hidden text-xs font-semibold text-[var(--muted)] sm:inline" aria-live="polite">
+          {saving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Could not save" : "Not saved yet"}
+        </span>
+        <Button variant="secondary" onClick={() => setPreview(true)}><Eye className="size-4" /> Preview</Button>
+        <Button variant="accent" onClick={publish} disabled={!valid || saving}><Send className="size-4" /> Publish survey</Button>
       </div>
 
       {preview && (

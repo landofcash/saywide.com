@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, AudioLines, Check, LayoutDashboard, LogIn, Menu, Mic, PenLine, Sparkles, Square, X } from "lucide-react";
+import { ArrowRight, AudioLines, LayoutDashboard, LogIn, Menu, Mic, PenLine, Sparkles, Square, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -70,24 +70,20 @@ export function CreateSurveyScreen() {
           <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-[var(--mint-soft)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-emerald-900">
             <Sparkles className="size-3.5" /> Ask openly. Understand clearly.
           </div>
-          <h1 className="font-display max-w-[13ch] text-[clamp(2.5rem,4.5vw,4rem)] font-bold leading-[1.06] tracking-[-0.035em]">
-            Hear what everyone has to say.
+          <h1 className="font-display max-w-[13ch] text-[clamp(2.25rem,4vw,3.5rem)] font-bold leading-[1.06] tracking-[-0.035em]">
+            Hear what everyone has to say
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted)]">
-            Create an open-ended survey and collect thoughtful, anonymous answers by voice or text.
+            Create a survey simply by speaking your questions, and let AI refine them when needed. Participants answer freely by voice, and Saywide transforms every response into useful insights.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
-            {(apiCapabilities.reports
-              ? ["No sign-up to start", "Anonymous responses", "Evidence with every finding"]
-              : ["No sign-up to start", "Anonymous responses", apiCapabilities.voice ? "Voice or text responses" : "Text-only collection"]
-            ).map((item) => (
-              <span key={item} className="flex items-center gap-2"><Check className="size-4 text-emerald-700" /> {item}</span>
+            {[["🎙️", "Voice-first surveys"], ["🚀", "No sign-up required"], ["✨", "AI-generated insights"]].map(([emoji, item]) => (
+              <span key={item} className="flex items-center gap-2"><span aria-hidden="true">{emoji}</span> {item}</span>
             ))}
           </div>
         </section>
 
-        <Card className="p-5 sm:p-8">
-          {apiCapabilities.goalDrafting ? <div>
+        {apiCapabilities.goalDrafting ? <Card className="p-5 sm:p-8"><div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Start with your goal</p>
             <h2 className="font-display mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">What do you want to learn?</h2>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Describe the audience and the decision their perspective will help you make.</p>
@@ -124,15 +120,11 @@ export function CreateSurveyScreen() {
                 <Link href="/surveys/new"><PenLine className="size-4" /> Start manually</Link>
               </Button>
             </div>
-          </div> : <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Create a survey</p>
-            <h2 className="font-display mt-2 text-2xl font-bold tracking-[-0.03em] sm:text-3xl">Start with your questions</h2>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Give the survey a title, add up to five open-ended questions, and choose when collection should close.</p>
+          </div></Card> : <div>
             <Button size="lg" variant="accent" className="mt-8 w-full" asChild>
               <Link href="/surveys/new"><PenLine className="size-4" /> Build a survey</Link>
             </Button>
           </div>}
-        </Card>
       </main>
     </div>
   );
