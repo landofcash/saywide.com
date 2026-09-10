@@ -116,7 +116,6 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           <Card className="p-5 sm:p-7">
             <div className="space-y-3 text-sm leading-6 text-[var(--muted)]">
               <p>Say your survey name and what participants should know, AI can polish the wording.</p>
-              <p>In Additional settings, you can choose a closing date and set the minimum number of responses required to generate a report.</p>
             </div>
             <div className="mt-5">
               <Label htmlFor="survey-title">Title</Label>
@@ -143,6 +142,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
                   </span>
                   <ChevronDown className="size-5 shrink-0 text-[var(--muted)] transition-transform group-open:rotate-180" aria-hidden="true" />
                 </summary>
+                <p className="mt-4 text-sm leading-6 text-[var(--muted)]">Choose a closing date and set the minimum number of responses required to generate a report.</p>
                 <div className="mt-5">
                   <Label htmlFor="expiry">Close on</Label>
                   <Input id="expiry" type="date" value={expiresAt} onChange={(event) => { setExpiresAt(event.target.value); setSaveState("idle"); }} />
