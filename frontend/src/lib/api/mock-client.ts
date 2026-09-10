@@ -77,6 +77,12 @@ function makeSurvey(input: SurveyDraftInput, surveyId = `survey-${Date.now()}`):
 }
 
 export const mockSaywideApi: SaywideApi = {
+  async createOrganizerTranscriptionSession() {
+    throw new Error("Voice input needs the live API. You can continue by typing in demo mode.");
+  },
+  async polishSurveyText() {
+    throw new Error("AI polishing needs the live API. Your original text is unchanged.");
+  },
   async listSurveys() {
     await pause();
     return readState().surveys.map(summary).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));

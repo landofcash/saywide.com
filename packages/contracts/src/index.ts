@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const polishSurveyTextInputSchema = z.object({
+  field: z.enum(["title", "introduction"]),
+  text: z.string().trim().min(1).max(2000),
+}).strict();
+export type PolishSurveyTextInput = z.infer<typeof polishSurveyTextInputSchema>;
+export const polishSurveyTextResponseSchema = z.object({ text: z.string().trim().min(1).max(2000) });
+export type PolishSurveyTextResponse = z.infer<typeof polishSurveyTextResponseSchema>;
+
 export const surveyStatusSchema = z.enum(["draft", "open", "closed", "archived"]);
 export type SurveyStatus = z.infer<typeof surveyStatusSchema>;
 

@@ -40,6 +40,12 @@ const config: AppConfig = {
 const app = buildApp({
   config,
   pool,
+  surveyTextPolisher: {
+    async polish(input) {
+      if (input.text === "simulate provider failure") throw new Error("provider-secret-must-not-leak");
+      return { text: input.field === "title" ? "Team feedback" : "Share your thoughts on our meetings." };
+    },
+  },
   reportAnalyzer: {
     async analyze(snapshot, _instruction, activity) {
       const { manifest } = await loadReportSkills();
@@ -123,6 +129,43 @@ afterAll(async () => {
 });
 
 describe("Phase 1 API", () => {
+  it("protects organizer writing tools and returns suggestions without saving a survey", async () => {
+    const origin = "http://localhost:3000";
+    const guest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+    const cookie = guest.headers["set-cookie"]!.toString().split(";")[0];
+    const headers = { origin, cookie };
+    const before = await pool.query("SELECT count(*) FROM survey");
+    for (const url of ["/api/organizer/transcription-sessions", "/api/organizer/polish-text"]) {
+      const payload = url.endsWith("polish-text") ? { field: "title", text: "um team feedback" } : undefined;
+      const wrongOrigin = await app.inject({ method: "POST", url, headers: { ...headers, origin: "https://untrusted.example" }, payload });
+      expect(wrongOrigin.statusCode).toBe(403);
+      const noGuest = await app.inject({ method: "POST", url, headers: { origin }, payload });
+      expect(noGuest.statusCode).toBe(401);
+    }
+    const voice = await app.inject({ method: "POST", url: "/api/organizer/transcription-sessions", headers });
+    expect(voice.statusCode).toBe(200);
+    expect(voice.json().websocketUrl).toMatch(/^wss:/);
+    expect(voice.headers["cache-control"]).toContain("no-store");
+    const polish = (payload: unknown) => app.inject({ method: "POST", url: "/api/organizer/polish-text", headers, payload });
+    const result = await polish({ field: "title", text: "um team feedback" });
+    expect(result.statusCode).toBe(200);
+    expect(result.json()).toEqual({ text: "Team feedback" });
+    expect(result.headers["cache-control"]).toContain("no-store");
+    expect((await polish({ field: "introduction", text: "um share thoughts about meetings" })).json())
+      .toEqual({ text: "Share your thoughts on our meetings." });
+    for (const invalid of [
+      { field: "expiresAt", text: "Friday" },
+      { field: "title", text: " " },
+      { field: "title", text: "x".repeat(2001) },
+      { field: "title", text: "Hello", expiresAt: "2026-10-01" },
+    ]) expect((await polish(invalid)).statusCode).toBe(400);
+    const failure = await polish({ field: "title", text: "simulate provider failure" });
+    expect(failure.statusCode).toBe(503);
+    expect(failure.body).not.toContain("provider-secret");
+    expect(failure.json().error.code).toBe("POLISH_UNAVAILABLE");
+    expect((await pool.query("SELECT count(*) FROM survey")).rows).toEqual(before.rows);
+  });
+
   it("permits the browser preflight needed for text autosave", async () => {
     const response = await app.inject({
       method: "OPTIONS",

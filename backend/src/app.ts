@@ -13,6 +13,8 @@ import { SaywideRepository } from "./repositories/saywide-repository.js";
 import { ReportRepository } from "./repositories/report-repository.js";
 import { healthRoutes } from "./routes/health.js";
 import { organizerRoutes } from "./routes/organizer.js";
+import { organizerWritingRoutes } from "./routes/organizer-writing.js";
+import { OpenAiSurveyTextPolisher, type SurveyTextPolisher } from "./services/survey-text-polisher.js";
 import { publicRoutes } from "./routes/public.js";
 import { reportRoutes } from "./routes/reports.js";
 import { surveyRoutes } from "./routes/surveys.js";
@@ -29,6 +31,7 @@ export interface BuildAppOptions {
   pool?: Pool;
   transcriptionSessionSigner?: TranscriptionSessionSigner;
   reportAnalyzer?: ReportAnalyzer;
+  surveyTextPolisher?: SurveyTextPolisher;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -82,6 +85,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     });
     scope.register(healthRoutes(service));
     scope.register(organizerRoutes(service, options.config));
+    scope.register(organizerWritingRoutes(service, transcriptionSessionSigner,
+      options.surveyTextPolisher ?? new OpenAiSurveyTextPolisher(options.config), options.config));
     scope.register(surveyRoutes(service, options.config));
     scope.register(reportRoutes(service, reportService, options.config));
     scope.register(publicRoutes(service, transcriptionSessionSigner, options.config));

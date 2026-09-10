@@ -1,5 +1,22 @@
 # Saywide backend
 
+## Organizer voice input and text polishing
+
+The survey builder supports dictating the title and participant introduction separately.
+`POST /api/organizer/transcription-sessions` issues an Amazon Transcribe streaming URL
+using the existing AWS configuration. It requires a guest session and an allowed browser
+origin, and is limited to 20 requests per hour per IP. Audio streams directly from the
+browser to Transcribe; the application does not store it.
+
+`POST /api/organizer/polish-text` accepts `{ field: "title" | "introduction", text: string }`
+and returns `{ text: string }`. It uses `OPENAI_API_KEY` and `OPENAI_MODEL` from the backend
+environment, independently of the report model provider. This endpoint also requires a
+guest session and allowed origin and is limited to 20 requests per hour per IP. Model calls
+have a 30-second timeout, no retries, and response storage disabled. It only suggests wording;
+it does not save a survey, generate questions, or change dates. The browser shows the suggestion
+for review and supports keeping or restoring the original text. Manual editing remains available
+when either provider is unavailable. Demo mode reports that these tools require the live API.
+
 This directory implements the anonymous-text and report APIs described in
 [`docs/api-endpoints.md`](../docs/api-endpoints.md): health, guest workspaces,
 manual survey CRUD/status, participant-safe survey reads, response sessions,

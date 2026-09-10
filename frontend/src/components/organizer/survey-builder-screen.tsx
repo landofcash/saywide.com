@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
+import { SurveyWritingControls } from "@/components/organizer/survey-writing-controls";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Textarea } from "@/components/ui/form-controls";
@@ -28,6 +29,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
   const [preview, setPreview] = useState(false);
   const [currentId, setCurrentId] = useState(surveyId);
+  const [writingBusy, setWritingBusy] = useState(false);
 
   useEffect(() => {
     if (!surveyId) return;
@@ -57,7 +59,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   }
 
   async function save() {
-    if (!valid) return null;
+    if (!valid || writingBusy) return null;
     setSaving(true);
     setSaveState("idle");
     try {
@@ -112,14 +114,16 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       <div className="space-y-6">
         <div className="space-y-5">
           <Card className="p-5 sm:p-7">
-            <p className="text-sm leading-6 text-[var(--muted)]">Say your survey name, what participants should know (such as its purpose and how their responses will be used) and when the survey should close.</p>
+            <p className="text-sm leading-6 text-[var(--muted)]">Say or type your survey name and what participants should know, such as its purpose and how their responses will be used. Polish the wording with AI if you like, then choose the closing date below.</p>
             <div className="mt-5">
               <Label htmlFor="survey-title">Title</Label>
-              <Input id="survey-title" value={title} onChange={(event) => { setTitle(event.target.value); setSaveState("idle"); }} placeholder="Quarterly team retrospective" />
+              <Input id="survey-title" maxLength={160} readOnly={writingBusy} value={title} onChange={(event) => { setTitle(event.target.value); setSaveState("idle"); }} placeholder="Quarterly team retrospective" />
+              <SurveyWritingControls field="title" value={title} disabled={writingBusy || saving} onBusyChange={setWritingBusy} onChange={(text) => { setTitle(text); setSaveState("idle"); }} />
             </div>
             <div className="mt-5">
               <Label htmlFor="survey-introduction">What participants should know</Label>
-              <Textarea id="survey-introduction" rows={4} value={introduction} onChange={(event) => { setIntroduction(event.target.value); setSaveState("idle"); }} placeholder="Why you are asking and how answers will be used." />
+              <Textarea id="survey-introduction" rows={4} maxLength={2000} readOnly={writingBusy} value={introduction} onChange={(event) => { setIntroduction(event.target.value); setSaveState("idle"); }} placeholder="Why you are asking and how answers will be used." />
+              <SurveyWritingControls field="introduction" value={introduction} disabled={writingBusy || saving} onBusyChange={setWritingBusy} onChange={(text) => { setIntroduction(text); setSaveState("idle"); }} />
             </div>
           </Card>
 
@@ -139,7 +143,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
                 <p className="font-bold">Participant privacy</p>
                 <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
               </div>
-              <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving}>{saving ? "Saving…" : "Save draft"}</Button>
+              <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving || writingBusy}>{saving ? "Saving…" : "Save draft"}</Button>
             </Card>
           </section>
 
@@ -178,7 +182,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           {saving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Could not save" : "Not saved yet"}
         </span>
         <Button variant="secondary" onClick={() => setPreview(true)}><Eye className="size-4" /> Preview</Button>
-        <Button variant="accent" onClick={publish} disabled={!valid || saving}><Send className="size-4" /> Publish survey</Button>
+        <Button variant="accent" onClick={publish} disabled={!valid || saving || writingBusy}><Send className="size-4" /> Publish survey</Button>
       </div>
 
       {preview && (

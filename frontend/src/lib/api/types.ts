@@ -1,4 +1,6 @@
 import type {
+  PolishSurveyTextInput,
+  PolishSurveyTextResponse,
   ParticipantAnswers,
   PublicSurvey,
   CreateReportResponse,
@@ -14,6 +16,8 @@ import type {
 } from "@saywide/contracts";
 
 export interface SaywideApi {
+  createOrganizerTranscriptionSession(): Promise<TranscriptionSessionResponse>;
+  polishSurveyText(input: PolishSurveyTextInput): Promise<PolishSurveyTextResponse>;
   listSurveys(): Promise<SurveySummary[]>;
   getSurvey(surveyId: string): Promise<SurveyDetail>;
   draftSurveyFromGoal(goal: string): Promise<SurveyDetail>;

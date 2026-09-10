@@ -1,4 +1,5 @@
 import type {
+  PolishSurveyTextResponse,
   ApiError,
   CreateReportResponse,
   PublicSurvey,
@@ -95,6 +96,17 @@ function unavailable(feature: string): never {
 }
 
 export const httpSaywideApi: SaywideApi = {
+  async createOrganizerTranscriptionSession() {
+    await ensureGuestSession();
+    return request<TranscriptionSessionResponse>("/api/organizer/transcription-sessions", { method: "POST" });
+  },
+
+  async polishSurveyText(input) {
+    await ensureGuestSession();
+    return request<PolishSurveyTextResponse>("/api/organizer/polish-text", {
+      method: "POST", body: JSON.stringify(input),
+    });
+  },
   async listSurveys() {
     await ensureGuestSession();
     return (await request<SurveyListResponse>("/api/organizer/surveys")).items;
