@@ -59,7 +59,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div><p className="font-bold">{survey.title}</p><p className="mt-1 text-sm text-emerald-950/70">{pluralize(eligible, "submitted response")} available now</p></div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
-          <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="text-base leading-7" /></div>
+          <div className="mt-7"><Label htmlFor="report-instruction">Say what you want the report to focus on</Label><Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="text-base leading-7" /></div>
           <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {examples.map((example) => (
