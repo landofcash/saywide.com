@@ -24,7 +24,7 @@ const presetInstruction = (example: typeof examples[number]) => `${example.title
 export function CreateReportScreen({ surveyId }: { surveyId: string }) {
   const router = useRouter();
   const [survey, setSurvey] = useState<SurveyDetail | null>(null);
-  const [instruction, setInstruction] = useState(presetInstruction(examples[0]));
+  const [instruction, setInstruction] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -57,7 +57,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div><p className="font-bold">{survey.title}</p><p className="mt-1 text-sm text-emerald-950/70">{pluralize(eligible, "submitted response")} available now</p></div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
-          <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} value={instruction} onChange={(event) => setInstruction(event.target.value)} className="text-base leading-7" /></div>
+          <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"For example, highlight different points of view,\nfind unexpected insights,\ncompare positive and negative feedback,\nsummarize each question"} className="text-base leading-7" /></div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {examples.map((example) => (
               <button key={example.title} type="button" onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
