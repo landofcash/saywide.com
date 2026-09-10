@@ -14,15 +14,17 @@ import { api } from "@/lib/api";
 import { formatDateTime, pluralize } from "@/lib/utils";
 
 const examples = [
-  "Find our biggest friction points and practical next steps.",
-  "What did people value most, and why?",
-  "Surface minority concerns we should not overlook.",
+  { title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
+  { title: "Show what came up most often", description: "Find the most frequently mentioned themes, concerns, and suggestions." },
+  { title: "Suggest practical next steps", description: "Turn the responses into useful recommendations." },
 ];
+
+const presetInstruction = (example: typeof examples[number]) => `${example.title}. ${example.description}`;
 
 export function CreateReportScreen({ surveyId }: { surveyId: string }) {
   const router = useRouter();
   const [survey, setSurvey] = useState<SurveyDetail | null>(null);
-  const [instruction, setInstruction] = useState(examples[0]);
+  const [instruction, setInstruction] = useState(presetInstruction(examples[0]));
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,7 +58,14 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
           <div className="mt-7"><Label htmlFor="report-instruction">Report instruction</Label><Textarea id="report-instruction" rows={7} value={instruction} onChange={(event) => setInstruction(event.target.value)} className="text-base leading-7" /></div>
-          <div className="mt-4 flex flex-wrap gap-2">{examples.map((example) => <button key={example} onClick={() => setInstruction(example)} className="min-h-10 rounded-lg border border-[var(--line)] bg-white px-3 text-left text-xs font-semibold hover:border-[var(--ink)]">{example}</button>)}</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {examples.map((example) => (
+              <button key={example.title} type="button" onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
+                <span className="block text-sm font-bold">{example.title}</span>
+                <span className="mt-2 block text-xs leading-5 text-[var(--muted)]">{example.description}</span>
+              </button>
+            ))}
+          </div>
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
             {[["1", "Freeze the response snapshot"], ["2", "Find and count patterns"], ["3", "Validate every finding"]].map(([number, label]) => <div key={number} className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-3 text-sm font-semibold"><span className="grid size-7 shrink-0 place-items-center rounded-md bg-white text-xs">{number}</span>{label}</div>)}
           </div>
