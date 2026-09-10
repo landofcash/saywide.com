@@ -109,7 +109,7 @@ export class ReportService {
       await this.repository.setStage(requestId, "analyzing", "snapshot_loaded", "load_response_snapshot", Math.round(performance.now() - snapshotStarted));
 
       const analysisStarted = performance.now();
-      const analysis = await this.analyzer.analyze(snapshot, instruction);
+      const analysis = await this.analyzer.analyze(snapshot, instruction, (event) => this.repository.recordActivity(requestId, event));
       await this.repository.setStage(requestId, "validating", "themes_extracted", "extract_themes", Math.round(performance.now() - analysisStarted));
 
       const validationStarted = performance.now();
@@ -138,13 +138,14 @@ export class ReportService {
   async get(organizerId: string, reportId: string): Promise<ReportResult> {
     const result = await this.repository.get(organizerId, reportId);
     if (!result) throw notFound("REPORT_NOT_FOUND");
+    const activity = await this.repository.activity(organizerId, reportId);
     if (result.kind === "progress") {
-      return { reportId, status: result.status, snapshotAt: result.snapshotAt, progress: result.progress };
+      return { reportId, status: result.status, snapshotAt: result.snapshotAt, progress: result.progress, ...activity };
     }
     if (result.kind === "failed") {
-      return { reportId, status: "failed", snapshotAt: result.snapshotAt, retryable: true, errorCode: result.errorCode };
+      return { reportId, status: "failed", snapshotAt: result.snapshotAt, retryable: true, errorCode: result.errorCode, ...activity };
     }
-    return { reportId, status: "completed", snapshotAt: result.snapshotAt, report: result.report };
+    return { reportId, status: "completed", snapshotAt: result.snapshotAt, report: result.report, ...activity };
   }
 
   private validate(snapshot: FrozenReportSnapshot, candidate: CandidateReport, instruction: string): ValidatedReportRecord {

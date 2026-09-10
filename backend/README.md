@@ -60,6 +60,33 @@ under `backend/test`; no runtime seed endpoint exposes it.
 
 ## Current boundary
 
+### Report skills
+
+Trusted skill content lives in `skills/<id>/SKILL.md` with supporting examples.
+`src/agents/skill-catalogue.ts` is the allowlist and version registry. Only
+feedback-synthesis and evidence-review are currently available to report agents.
+The Strands AgentSkills plugin exposes their descriptions first; full guidance
+and the small supporting files are delivered on activation. No shell, arbitrary
+file reader, remote URL loader, or user-uploaded skills are exposed.
+
+Before model invocation, an immutable `skills_available` agent event records
+the available IDs, versions, SHA-256 content hashes, and deployment revision.
+Hashes include sorted resource paths and text with normalized Git line endings.
+The revision uses `RAILWAY_GIT_COMMIT_SHA`, or optional `DEPLOYMENT_REVISION`
+locally; it is null when unavailable, never guessed. Confirmed plugin activations
+produce `skill_activated` events referencing the same versions/hashes. The public
+organizer activity projection exposes only safe labels, not skill contents.
+
+To update a skill, edit its files, increment its catalogue version, run tests,
+review the Git diff, and deploy. Existing events are not rewritten. Preserve Git
+history so historical hashes can be resolved to the original source. The backend
+build copies skills into `dist/skills`; deploy the entire dist directory.
+
+Activation records mean "guidance loaded", not "review completed". The report
+agent is prompted to self-check, but a separate enforced review/revision workflow
+is not implemented here. Backend reference validation and counting remain mandatory.
+No database migration or required new environment variable is needed.
+
 Account registration/login, guest claiming, and goal-to-survey generation are
 not registered yet. Live HTTP mode exposes participant voice transcription and
 asynchronous Strands reports. Report requests freeze their snapshot using the

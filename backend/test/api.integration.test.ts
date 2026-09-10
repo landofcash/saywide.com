@@ -6,6 +6,7 @@ import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { buildApp } from "../src/app.js";
+import { loadReportSkills } from "../src/agents/skill-catalogue.js";
 import type { AppConfig } from "../src/config.js";
 
 const adminDatabaseUrl = process.env.TEST_DATABASE_ADMIN_URL
@@ -40,7 +41,16 @@ const app = buildApp({
   config,
   pool,
   reportAnalyzer: {
-    async analyze(snapshot) {
+    async analyze(snapshot, _instruction, activity) {
+      const { manifest } = await loadReportSkills();
+      await activity?.({ type: "skills_available", skills: manifest, deploymentRevision: "abcdef1234567" });
+      for (const skill of manifest) await activity?.({ type: "skill_activated", skill });
+      await activity?.({ type: "model_started" });
+      await Promise.all([
+        activity?.({ type: "tool_started", toolName: "inspect_snapshot" }),
+        activity?.({ type: "tool_started", toolName: "other" }),
+      ]);
+      await activity?.({ type: "model_completed", durationMs: 12 });
       const [first, second] = snapshot.responses;
       const firstAnswer = first.answers[0];
       return {
@@ -333,6 +343,14 @@ describe("Phase 1 API", () => {
       },
     });
     expect(reportResult.report.findings).toHaveLength(1);
+    expect(reportResult.activity).toHaveLength(13);
+    expect(reportResult.activity[4]).toMatchObject({ source: "agent", label: "Loaded feedback synthesis guidance" });
+    expect(reportResult.activity[5]).toMatchObject({ source: "agent", label: "Loaded evidence review guidance" });
+    expect(reportResult.activity[6]).toMatchObject({ sequence: 7, source: "agent", type: "model_started" });
+    expect(reportResult.activity[9]).toMatchObject({ source: "agent", durationMs: 12 });
+    expect(reportResult.activity[12]).toMatchObject({ source: "workflow", type: "completed" });
+    expect(JSON.stringify(reportResult.activity)).not.toContain("answerId");
+    expect(JSON.stringify(reportResult.activity)).not.toContain("safe_metadata");
 
     const trace = await pool.query<{ event_type: string; tool_name: string | null }>(`
       SELECT ae.event_type, ae.tool_name
@@ -340,8 +358,14 @@ describe("Phase 1 API", () => {
       WHERE ar.report_request_id = $1 ORDER BY ae.sequence
     `, [reportId]);
     expect(trace.rows.map((row) => row.event_type)).toEqual([
-      "queued", "snapshot_started", "snapshot_loaded", "themes_extracted", "evidence_validated", "completed",
+      "queued", "snapshot_started", "snapshot_loaded", "skills_available", "skill_activated", "skill_activated", "model_started", "tool_started", "tool_started", "model_completed", "themes_extracted", "evidence_validated", "completed",
     ]);
+    const catalogueEvent = await pool.query(`
+      SELECT safe_metadata FROM agent_event ae JOIN agent_run ar ON ar.id = ae.agent_run_id
+      WHERE ar.report_request_id = $1 AND ae.event_type = 'skills_available'
+    `, [reportId]);
+    const { manifest } = await loadReportSkills();
+    expect(catalogueEvent.rows[0].safe_metadata).toEqual({ skills: manifest, deploymentRevision: "abcdef1234567" });
 
     const assignments = await pool.query<{ validated: boolean }>(`
       SELECT ta.validated FROM theme_assignment ta

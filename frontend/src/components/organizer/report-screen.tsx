@@ -1,6 +1,6 @@
 "use client";
 
-import type { Finding, Report } from "@saywide/contracts";
+import type { Finding, Report, ReportActivity } from "@saywide/contracts";
 import { ArrowLeft, Check, ChevronDown, Download, FilePlus2, Quote, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -15,9 +15,17 @@ import { formatDateTime, pluralize } from "@/lib/utils";
 const progressSteps = ["Preparing response snapshot", "Finding themes", "Checking evidence", "Writing report"];
 
 export function ReportScreen({ reportId }: { reportId: string }) {
+  return <ReportView key={reportId} reportId={reportId} />;
+}
+
+function ReportView({ reportId }: { reportId: string }) {
   const [report, setReport] = useState<Report | null>(null);
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
+  const [activity, setActivity] = useState<ReportActivity[]>([]);
+  const [surveyId, setSurveyId] = useState<string>();
+  const [failed, setFailed] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -27,12 +35,16 @@ export function ReportScreen({ reportId }: { reportId: string }) {
       try {
         const result = await api.getReport(reportId);
         if (!active) return;
+        setError("");
+        setActivity(result.activity ?? []);
+        setSurveyId(result.surveyId);
         if (result.status === "completed") {
           setStep(progressSteps.length);
           setReport(result.report);
           return;
         }
         if (result.status === "failed") {
+          setFailed(true);
           setError("The report could not be completed. Your responses are safe; start another report to retry.");
           return;
         }
@@ -47,7 +59,7 @@ export function ReportScreen({ reportId }: { reportId: string }) {
 
     void refresh();
     return () => { active = false; if (timeout) window.clearTimeout(timeout); };
-  }, [reportId]);
+  }, [reportId, refreshKey]);
 
   function downloadMarkdown() {
     if (!report) return;
@@ -63,11 +75,19 @@ export function ReportScreen({ reportId }: { reportId: string }) {
     return (
       <OrganizerShell>
         <div className="mx-auto max-w-2xl pt-10 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-lg border border-[var(--line)] bg-[var(--lavender)]"><Sparkles className="size-6 animate-pulse" /></span>
-          <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Building your report</p>
-          <h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">Following the evidence</h1>
-          <div className="mx-auto mt-8 max-w-md space-y-3 text-left" aria-live="polite">{progressSteps.map((label, index) => <div key={label} className={`flex items-center gap-3 rounded-lg border p-4 ${index < step ? "border-emerald-300 bg-[var(--mint-soft)]" : index === step ? "border-[var(--ink)] bg-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}><span className={`grid size-7 place-items-center rounded-md ${index < step ? "bg-emerald-700 text-white" : "bg-[var(--canvas)]"}`}>{index < step ? <Check className="size-4" /> : index + 1}</span><span className="text-sm font-semibold">{label}</span></div>)}</div>
+          <span className="mx-auto grid size-14 place-items-center rounded-lg border border-[var(--line)] bg-[var(--lavender)]"><Sparkles className={`size-6 ${error ? "" : "animate-pulse motion-reduce:animate-none"}`} /></span>
+          <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">{failed ? "Report stopped" : error ? "Status unavailable" : "Building your report"}</p>
+          <h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{failed ? "Your responses are safe" : "Following the evidence"}</h1>
+          {!error && <div className="mx-auto mt-8 max-w-md space-y-3 text-left" aria-live="polite">{progressSteps.map((label, index) => <div key={label} className={`flex items-center gap-3 rounded-lg border p-4 ${index < step ? "border-emerald-300 bg-[var(--mint-soft)]" : index === step ? "border-[var(--ink)] bg-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}><span className={`grid size-7 place-items-center rounded-md ${index < step ? "bg-emerald-700 text-white" : "bg-[var(--canvas)]"}`}>{index < step ? <Check className="size-4" /> : index + 1}</span><span className="text-sm font-semibold">{label}</span></div>)}</div>}
+          <ActivityTimeline activity={activity} expanded />
+          {!error && <p className="sr-only" role="status">{activity.at(-1)?.label ?? "Waiting for report status"}</p>}
           {error && <p role="alert" className="mx-auto mt-6 max-w-md rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {error && !failed && <Button onClick={() => setRefreshKey((key) => key + 1)}>Retry status check</Button>}
+            {failed && surveyId && <Button asChild><Link href={`/surveys/${surveyId}/reports/new`}>Start another report</Link></Button>}
+            <Button asChild variant="secondary"><Link href={surveyId ? `/surveys/${surveyId}` : "/dashboard"}>{surveyId ? "Back to survey" : "Back to surveys"}</Link></Button>
+          </div>
+          {!error && <p className="mt-4 text-sm text-[var(--muted)]">You can leave this page and return to this report from your survey.</p>}
         </div>
       </OrganizerShell>
     );
@@ -80,6 +100,7 @@ export function ReportScreen({ reportId }: { reportId: string }) {
         <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={downloadMarkdown}><Download className="size-4" /> Markdown</Button><Button variant="accent" asChild><Link href={`/surveys/${report.surveyId}/reports/new`}><FilePlus2 className="size-4" /> Another report</Link></Button></div>
       </div>
 
+      <ActivityTimeline activity={activity} />
       <div className="mt-9 grid gap-5 xl:grid-cols-[1fr_320px]">
         <div className="space-y-5">{report.findings.map((finding, index) => <FindingCard finding={finding} index={index} denominator={report.eligibleResponseCount} key={finding.findingId} />)}</div>
         <aside className="space-y-5">
@@ -90,6 +111,20 @@ export function ReportScreen({ reportId }: { reportId: string }) {
       </div>
     </OrganizerShell>
   );
+}
+
+export function ActivityTimeline({ activity, expanded = false }: { activity: ReportActivity[]; expanded?: boolean }) {
+  if (!activity.length) return null;
+  return <details open={expanded || undefined} className="mt-6 rounded-lg border border-[var(--line)] bg-white p-4 text-left">
+    <summary className="cursor-pointer text-sm font-semibold">Agent activity · {activity.length} recent events</summary>
+    <p className="mt-2 text-xs text-[var(--muted)]">Actual agent calls and application checks. No private response content is shown.</p>
+    <ol className="mt-4 max-h-80 space-y-3 overflow-y-auto" aria-label="Report activity">
+      {activity.map((event) => <li key={event.sequence} className="border-l-2 border-[var(--line)] pl-3 text-sm">
+        <div className="flex flex-wrap justify-between gap-2"><span>{event.label}</span><span className="text-xs text-[var(--muted)]">{event.durationMs === null ? "" : `${(event.durationMs / 1000).toFixed(1)}s`}</span></div>
+        <div className="mt-1 text-xs text-[var(--muted)]">{event.source === "agent" ? "Strands agent" : "Application"} · <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleTimeString()}</time></div>
+      </li>)}
+    </ol>
+  </details>;
 }
 
 function FindingCard({ finding, index, denominator }: { finding: Finding; index: number; denominator: number }) {

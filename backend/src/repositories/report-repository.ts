@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import type { Report, ReportSummary } from "@saywide/contracts";
+import type { Report, ReportSummary, ReportActivity } from "@saywide/contracts";
+import type { ReportHookEvent } from "../services/report-hooks.js";
 import type { Pool, PoolClient, QueryResultRow } from "pg";
 
 import type { FrozenReportSnapshot } from "../services/report-analyzer.js";
@@ -76,6 +77,50 @@ function progressLabel(status: InternalReportStatus, latestEventType: string | n
 
 export class ReportRepository {
   constructor(private readonly pool: Pool) {}
+
+  async recordActivity(requestId: string, event: ReportHookEvent): Promise<void> {
+    await this.transaction(async (client) => {
+      if (event.type === "skills_available") {
+        await this.addEvent(client, requestId, event.type, null, undefined, {
+          skills: event.skills.map(({ id, version, contentHash }) => ({ id, version, contentHash })),
+          deploymentRevision: event.deploymentRevision,
+        });
+      } else if (event.type === "skill_activated") {
+        const { id, version, contentHash } = event.skill;
+        await this.addEvent(client, requestId, event.type, "skills", undefined, { id, version, contentHash });
+      } else {
+        await this.addEvent(client, requestId, event.type, event.toolName ?? null, event.durationMs);
+      }
+    });
+  }
+
+  async activity(organizerId: string, requestId: string): Promise<{ surveyId?: string; activity: ReportActivity[] }> {
+    const result = await this.pool.query<{
+      survey_id: string; sequence: number; event_type: string; tool_name: string | null; safe_metadata: Record<string, unknown>; created_at: Date; duration_ms: number | null;
+    }>(`
+      SELECT rr.survey_id, ae.sequence, ae.event_type, ae.tool_name, ae.safe_metadata, ae.created_at, ae.duration_ms
+      FROM report_request rr JOIN survey s ON s.id = rr.survey_id AND s.organizer_id = $2
+      JOIN agent_run ar ON ar.report_request_id = rr.id JOIN agent_event ae ON ae.agent_run_id = ar.id
+      WHERE rr.id = $1 ORDER BY ae.sequence DESC LIMIT 100
+    `, [requestId, organizerId]);
+    const labels: Record<string, string> = {
+      queued: "Report queued", snapshot_started: "Preparing response snapshot", snapshot_loaded: "Response snapshot loaded",
+      model_started: "Model call started", model_completed: "Model call completed", model_failed: "Model call failed",
+      tool_started: "Agent tool started", tool_completed: "Agent tool completed", tool_failed: "Agent tool failed",
+      themes_extracted: "Candidate findings prepared", evidence_validated: "References and quotes checked",
+      completed: "Report saved", failed: "Report could not be completed",
+      skills_available: "Analysis guidance catalogue recorded", skill_activated: "Analysis guidance loaded",
+    };
+    return { surveyId: result.rows[0]?.survey_id, activity: result.rows.reverse().map((row) => ({
+      sequence: row.sequence, type: row.event_type,
+      source: row.event_type.startsWith("model_") || row.event_type.startsWith("tool_") || row.event_type === "skill_activated" ? "agent" : "workflow",
+      label: row.event_type === "skill_activated" && row.safe_metadata.id === "feedback-synthesis" ? "Loaded feedback synthesis guidance"
+        : row.event_type === "skill_activated" && row.safe_metadata.id === "evidence-review" ? "Loaded evidence review guidance"
+        : row.tool_name === "inspect_snapshot" && row.event_type.startsWith("tool_")
+        ? `Inspect snapshot: ${row.event_type === "tool_started" ? "started" : row.event_type === "tool_completed" ? "completed" : "failed"}`
+        : labels[row.event_type] ?? "Workflow update", createdAt: iso(row.created_at), durationMs: row.duration_ms,
+    })) };
+  }
 
   private async transaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
@@ -446,6 +491,8 @@ export class ReportRepository {
     durationMs?: number,
     metadata: Record<string, unknown> = {},
   ): Promise<void> {
+    // Serialize sequence allocation, including concurrent SDK tool callbacks.
+    await client.query("SELECT id FROM agent_run WHERE report_request_id = $1 FOR UPDATE", [requestId]);
     await client.query(`
       INSERT INTO agent_event (id, agent_run_id, sequence, event_type, tool_name, duration_ms, safe_metadata)
       SELECT $2, ar.id, COALESCE(max(ae.sequence), 0) + 1, $3, $4, $5, $6::jsonb

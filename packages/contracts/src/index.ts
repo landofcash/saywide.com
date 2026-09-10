@@ -138,10 +138,20 @@ export const completedReportResponseSchema = z.object({
   report: reportSchema,
 });
 
+export const reportActivitySchema = z.object({
+  sequence: z.number().int(),
+  type: z.string(),
+  source: z.enum(["workflow", "agent"]),
+  label: z.string(),
+  createdAt: z.string(),
+  durationMs: z.number().nullable(),
+});
+export type ReportActivity = z.infer<typeof reportActivitySchema>;
+const activityFields = { surveyId: z.string().optional(), activity: z.array(reportActivitySchema).optional() };
 export const reportResultSchema = z.discriminatedUnion("status", [
-  reportProgressSchema,
-  reportFailureSchema,
-  completedReportResponseSchema,
+  reportProgressSchema.extend(activityFields),
+  reportFailureSchema.extend(activityFields),
+  completedReportResponseSchema.extend(activityFields),
 ]);
 export type ReportResult = z.infer<typeof reportResultSchema>;
 
