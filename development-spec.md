@@ -115,7 +115,7 @@ The complete organizer and participant screen inventory is maintained in [Applic
 2. When creation begins, the server creates or restores a browser-bound guest organizer workspace.
 3. Organizer enters or records a survey goal.
 4. The app transcribes voice input when applicable.
-5. A Strands creation agent proposes one to five open-ended questions and a short introduction.
+5. A Strands creation agent proposes one or more open-ended questions and a short introduction.
 6. Organizer edits the title, introduction, questions, anonymity statement, and collection settings.
 7. Organizer publishes the survey.
 8. The app displays a participant share link and QR code that contain no organizer credential.
@@ -185,7 +185,7 @@ Suggested survey:
 ### 9.2 Survey creation
 
 - Accept a typed or recorded survey goal.
-- Generate up to five clear, neutral, open-ended questions.
+- Generate clear, neutral, open-ended questions.
 - Flag leading, compound, or sensitive questions for organizer review.
 - Allow manual reordering, editing, addition, and deletion.
 - Configure:
@@ -849,7 +849,7 @@ The MVP is ready for judging when all of the following are true:
 - [ ] A guest can create an email/password account without losing any survey.
 - [ ] A registered organizer can log in from another browser and see all surveys owned by the account.
 - [ ] After login to an existing account, the organizer can explicitly claim the current guest surveys without partial ownership changes.
-- [ ] The organizer can edit and publish one to five questions.
+- [ ] The organizer can edit and publish one or more questions without a product-level question-count limit.
 - [ ] A public link and QR code open on a phone.
 - [ ] A participant can answer entirely by text.
 - [ ] A participant can record, review, edit, and submit a transcript.

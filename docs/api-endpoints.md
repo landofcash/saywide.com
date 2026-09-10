@@ -205,7 +205,7 @@ Uses the Survey Creation Agent to generate and persist an editable draft from th
 - **Success:** `201` with a complete `SurveyDetail` containing `surveyId`, title, introduction, suggested questions, warnings, settings, and `status: "draft"`.
 - **State changes:** Creates the draft survey before the agent run so the run and events can be scoped to `survey_id`.
 - **Failures:** `400 VALIDATION_ERROR`, `401 ORGANIZER_AUTH_REQUIRED`, `429 AGENT_LIMITED`, or `503 AGENT_UNAVAILABLE`.
-- **Rules:** The agent may suggest only one to five questions. The organizer must be able to edit every generated field before publishing.
+- **Rules:** The agent may suggest only one or more questions. The organizer must be able to edit every generated field before publishing.
 
 ### `POST /api/surveys`
 
@@ -215,7 +215,7 @@ Creates a survey draft without invoking the creation agent.
 - **Request:** `{ title, introduction, questions, settings }`. Questions contain `{ prompt, required }`; settings contain optional expiry, access-code, and minimum-report threshold values.
 - **Success:** `201` with the persisted `SurveyDetail`.
 - **Failures:** `400 VALIDATION_ERROR`, `401 ORGANIZER_AUTH_REQUIRED`, `422 SURVEY_RULE_VIOLATION`, or `429 SURVEY_CREATION_LIMITED`.
-- **Rules:** Accept one to five ordered questions. Hash an access code when supplied and never return it after creation.
+- **Rules:** Accept one or more ordered questions. Hash an access code when supplied and never return it after creation.
 
 ### `GET /api/surveys/{surveyId}`
 
@@ -245,7 +245,7 @@ Validates a draft, creates its participant capability token when needed, and ope
 - **Request:** No body.
 - **Success:** `200` with `{ surveyId, status: "open", shareUrl, publicToken, expiresAt }`.
 - **Failures:** `404 SURVEY_NOT_FOUND`, `409 INVALID_SURVEY_STATE`, or `422 SURVEY_NOT_PUBLISHABLE` with safe field details.
-- **Rules:** Require one to five valid questions and ensure the guest organizer credential remains valid through the configured collection period. Repeating publish on the same open survey returns the same public token and link.
+- **Rules:** Require one or more valid questions and ensure the guest organizer credential remains valid through the configured collection period. Repeating publish on the same open survey returns the same public token and link.
 
 ### `POST /api/surveys/{surveyId}/close`
 

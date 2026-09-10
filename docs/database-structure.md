@@ -117,7 +117,7 @@ Stores ordered open-ended questions belonging to a survey.
 |---|---|---:|---|---|
 | `id` | `uuid` | No | Application generated | Primary key for the question. |
 | `survey_id` | `uuid` | No | — | Foreign key to `survey.id`. Uses `ON DELETE CASCADE`. |
-| `position` | `smallint` | No | — | One-based display order within the survey. Unique per survey and limited to the supported question range. |
+| `position` | `integer` | No | — | Positive, one-based display order within the survey. Unique per survey; no product-level question-count limit. |
 | `prompt` | `text` | No | — | Participant-facing open-ended question text. Must not be blank. |
 | `required` | `boolean` | No | `true` | Whether the response must contain a non-empty answer before submission. |
 | `created_at` | `timestamptz` | No | `now()` | Time the question was created. |

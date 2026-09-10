@@ -175,7 +175,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           <div hidden={step !== 2} className="space-y-5">
           <div className="flex items-end justify-between">
             <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p><h2 className="font-display mt-1 text-2xl font-bold">One clear thought at a time</h2></div>
-            <span className="text-sm font-semibold text-[var(--muted)]">{questions.length} / 5</span>
+            <span className="text-sm font-semibold text-[var(--muted)]">{questions.length} {questions.length === 1 ? "question" : "questions"}</span>
           </div>
 
           {questions.map((question, index) => (
@@ -200,7 +200,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
             </Card>
           ))}
 
-          <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={questions.length >= 5 || writingBusy || saving}><Plus className="size-4" /> Add question</Button>
+          <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={writingBusy || saving}><Plus className="size-4" /> Add question</Button>
           </div>
         </div>
       </div>

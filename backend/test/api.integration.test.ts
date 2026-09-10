@@ -129,6 +129,33 @@ afterAll(async () => {
 });
 
 describe("Phase 1 API", () => {
+  it("creates, edits, and publishes surveys with more than five questions", async () => {
+    const origin = "http://localhost:3000";
+    const guest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+    const cookie = guest.headers["set-cookie"]!.toString().split(";")[0];
+    const headers = { origin, cookie };
+    const draft = {
+      title: "Longer survey", introduction: "Share your feedback.",
+      questions: Array.from({ length: 8 }, (_, position) => ({ prompt: `What are your thoughts on topic ${position + 1}?`, required: true, position })),
+      settings: { expiresAt: null, hasAccessCode: false, minReportResponses: 2 },
+    };
+    const created = await app.inject({ method: "POST", url: "/api/surveys", headers, payload: draft });
+    expect(created.statusCode).toBe(201);
+    const id = created.json().surveyId;
+    expect(created.json().questions).toHaveLength(8);
+    draft.questions.push({ prompt: "What else should we know?", required: false, position: 8 });
+    const updated = await app.inject({ method: "PATCH", url: `/api/surveys/${id}`, headers, payload: draft });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.json().questions).toHaveLength(9);
+    const published = await app.inject({ method: "POST", url: `/api/surveys/${id}/publish`, headers });
+    expect(published.statusCode).toBe(200);
+    const visible = await app.inject({ method: "GET", url: `/api/public/s/${published.json().publicToken}` });
+    expect(visible.statusCode).toBe(200);
+    expect(visible.json().questions.map((question: { position: number }) => question.position)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    // Remove this disposable fixture before testing rollback to the old five-question schema.
+    await pool.query("DELETE FROM survey WHERE id = $1", [id]);
+  });
+
   it("protects organizer writing tools and returns suggestions without saving a survey", async () => {
     const origin = "http://localhost:3000";
     const guest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });

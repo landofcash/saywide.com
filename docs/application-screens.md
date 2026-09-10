@@ -91,13 +91,13 @@ flowchart LR
 
 ### O-02 — Survey Builder
 
-**Description:** The organizer reviews all generated content and remains in control of the final survey. The screen is optimized for one to five open-ended questions rather than behaving like a general form builder.
+**Description:** The organizer reviews all generated content and remains in control of the final survey. The screen is optimized for one or more open-ended questions rather than behaving like a general form builder.
 
 **Functional elements:**
 
 - Editable title and participant introduction.
 - Ordered question cards with prompt and required-answer controls.
-- Add, remove, and keyboard-accessible reorder actions, limited to five questions.
+- Add, remove, and keyboard-accessible reorder actions, with no product-level question-count limit.
 - Inline warnings for leading, compound, sensitive, or unclear questions.
 - Collection settings for expiry, optional access code, and minimum report responses.
 - Participant privacy/anonymity statement preview.

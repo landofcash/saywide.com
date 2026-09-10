@@ -18,7 +18,7 @@ export const questionSchema = z.object({
   questionId: z.string(),
   prompt: z.string().trim().min(1).max(1000),
   required: z.boolean(),
-  position: z.number().int().min(0).max(4),
+  position: z.number().int().min(0),
   warning: z.string().optional(),
 });
 export type Question = z.infer<typeof questionSchema>;
@@ -45,7 +45,7 @@ export type SurveySummary = z.infer<typeof surveySummarySchema>;
 
 export const surveyDetailSchema = surveySummarySchema.extend({
   introduction: z.string(),
-  questions: z.array(questionSchema).min(1).max(5),
+  questions: z.array(questionSchema).min(1),
   settings: surveySettingsSchema,
   publicToken: z.string().nullable(),
   participantUrl: z.string().nullable(),
@@ -57,7 +57,7 @@ export type SurveyDetail = z.infer<typeof surveyDetailSchema>;
 export const surveyDraftInputSchema = z.object({
   title: z.string().trim().min(1).max(160),
   introduction: z.string().trim().max(2000),
-  questions: z.array(questionSchema.omit({ questionId: true })).min(1).max(5),
+  questions: z.array(questionSchema.omit({ questionId: true })).min(1),
   settings: surveySettingsSchema.extend({
     minReportResponses: z.number().int().min(1).max(50),
   }),
