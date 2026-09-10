@@ -43,7 +43,7 @@ const app = buildApp({
   surveyTextPolisher: {
     async polish(input) {
       if (input.text === "simulate provider failure") throw new Error("provider-secret-must-not-leak");
-      return { text: input.field === "title" ? "Team feedback" : "Share your thoughts on our meetings." };
+      return { text: input.field === "title" ? "Team feedback" : input.field === "question" ? "How could we improve our team meetings?" : "Share your thoughts on our meetings." };
     },
   },
   reportAnalyzer: {
@@ -153,6 +153,9 @@ describe("Phase 1 API", () => {
     expect(result.headers["cache-control"]).toContain("no-store");
     expect((await polish({ field: "introduction", text: "um share thoughts about meetings" })).json())
       .toEqual({ text: "Share your thoughts on our meetings." });
+    const question = await polish({ field: "question", text: "um how could we make meetings better" });
+    expect(question.statusCode).toBe(200);
+    expect(question.json()).toEqual({ text: "How could we improve our team meetings?" });
     for (const invalid of [
       { field: "expiresAt", text: "Friday" },
       { field: "title", text: " " },

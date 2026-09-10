@@ -13,9 +13,9 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, Textarea } from "@/components/ui/form-controls";
 import { api } from "@/lib/api";
 
-type DraftQuestion = SurveyDraftInput["questions"][number];
+type DraftQuestion = SurveyDraftInput["questions"][number] & { editorId: string };
 
-const blankQuestion = (position: number): DraftQuestion => ({ prompt: "", required: true, position });
+const blankQuestion = (position: number): DraftQuestion => ({ editorId: crypto.randomUUID(), prompt: "", required: true, position });
 
 export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
     void api.getSurvey(surveyId).then((survey) => {
       setTitle(survey.title);
       setIntroduction(survey.introduction);
-      setQuestions(survey.questions.map(({ prompt, required, position, warning }) => ({ prompt, required, position, warning })));
+      setQuestions(survey.questions.map(({ questionId, prompt, required, position, warning }) => ({ editorId: questionId, prompt, required, position, warning })));
       setExpiresAt(survey.settings.expiresAt?.slice(0, 10) ?? "");
       setMinResponses(survey.settings.minReportResponses);
       setLoading(false);
@@ -57,7 +57,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
     return {
       title: title.trim(),
       introduction: introduction.trim(),
-      questions: questions.map((question, position) => ({ ...question, prompt: question.prompt.trim(), position })),
+      questions: questions.map((question, position) => ({ prompt: question.prompt.trim(), required: question.required, warning: question.warning, position })),
       settings: {
         expiresAt: expiresAt ? new Date(`${expiresAt}T23:59:00`).toISOString() : null,
         hasAccessCode: false,
@@ -178,19 +178,20 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           </div>
 
           {questions.map((question, index) => (
-            <Card key={index} className="p-5 sm:p-6">
+            <Card key={question.editorId} className="p-5 sm:p-6">
               <div className="flex gap-3">
                 <GripVertical className="mt-3 hidden size-5 shrink-0 text-[var(--muted)] sm:block" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
                     <Label htmlFor={`question-${index}`} className="mb-0">Question {index + 1}</Label>
                     <div className="flex">
-                      <Button variant="ghost" size="icon" onClick={() => moveQuestion(index, -1)} disabled={index === 0} aria-label={`Move question ${index + 1} up`}><ArrowUp className="size-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => moveQuestion(index, 1)} disabled={index === questions.length - 1} aria-label={`Move question ${index + 1} down`}><ArrowDown className="size-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => setQuestions((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={questions.length === 1} aria-label={`Remove question ${index + 1}`}><Trash2 className="size-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => moveQuestion(index, -1)} disabled={index === 0 || writingBusy || saving} aria-label={`Move question ${index + 1} up`}><ArrowUp className="size-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => moveQuestion(index, 1)} disabled={index === questions.length - 1 || writingBusy || saving} aria-label={`Move question ${index + 1} down`}><ArrowDown className="size-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => setQuestions((current) => current.filter((_, itemIndex) => itemIndex !== index))} disabled={questions.length === 1 || writingBusy || saving} aria-label={`Remove question ${index + 1}`}><Trash2 className="size-4" /></Button>
                     </div>
                   </div>
-                  <Textarea id={`question-${index}`} rows={3} value={question.prompt} onChange={(event) => updateQuestion(index, { prompt: event.target.value })} placeholder="Ask an open-ended question" className="mt-2" />
+                  <Textarea id={`question-${index}`} rows={3} maxLength={1000} readOnly={writingBusy || saving} value={question.prompt} onChange={(event) => updateQuestion(index, { prompt: event.target.value })} placeholder="Ask an open-ended question" className="mt-2" />
+                  <SurveyWritingControls field="question" fieldLabel={`question ${index + 1}`} value={question.prompt} disabled={writingBusy || saving} onBusyChange={setWritingBusy} onChange={(text) => updateQuestion(index, { prompt: text })} />
                   <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold"><input type="checkbox" className="size-4 accent-[var(--ink)]" checked={question.required} onChange={(event) => updateQuestion(index, { required: event.target.checked })} /> Required answer</label>
                   {question.warning && <p className="mt-2 flex gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><TriangleAlert className="mt-0.5 size-4 shrink-0" /> {question.warning}</p>}
                 </div>
@@ -198,7 +199,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
             </Card>
           ))}
 
-          <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={questions.length >= 5}><Plus className="size-4" /> Add question</Button>
+          <Button variant="secondary" onClick={() => setQuestions((current) => [...current, blankQuestion(current.length)])} disabled={questions.length >= 5 || writingBusy || saving}><Plus className="size-4" /> Add question</Button>
           </div>
         </div>
       </div>
@@ -209,7 +210,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           <Button variant="accent" onClick={() => setStep(2)} disabled={!descriptionValid || saving || writingBusy}>Next: Questions <ArrowRight className="size-4" /></Button>
         </div>
       ) : <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
-        <Button variant="ghost" className="mr-auto" onClick={() => setStep(1)} disabled={saving}><ArrowLeft className="size-4" /> Back</Button>
+        <Button variant="ghost" className="mr-auto" onClick={() => setStep(1)} disabled={saving || writingBusy}><ArrowLeft className="size-4" /> Back</Button>
         <span className="hidden text-xs font-semibold text-[var(--muted)] sm:inline" aria-live="polite">
           {saving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Could not save" : "Not saved yet"}
         </span>

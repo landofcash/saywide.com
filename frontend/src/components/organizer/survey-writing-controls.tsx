@@ -8,14 +8,15 @@ import { api } from "@/lib/api";
 import { startTranscribeStream, type TranscribeStreamController } from "@/lib/audio/transcribe-stream";
 
 interface Props {
-  field: "title" | "introduction";
+  field: "title" | "introduction" | "question";
+  fieldLabel?: string;
   value: string;
   disabled: boolean;
   onChange(value: string): void;
   onBusyChange(busy: boolean): void;
 }
 
-export function SurveyWritingControls({ field, value, disabled, onChange, onBusyChange }: Props) {
+export function SurveyWritingControls({ field, fieldLabel, value, disabled, onChange, onBusyChange }: Props) {
   const [phase, setPhase] = useState<"idle" | "starting" | "recording" | "finishing" | "polishing">("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -25,8 +26,8 @@ export function SurveyWritingControls({ field, value, disabled, onChange, onBusy
   const controller = useRef<TranscribeStreamController | null>(null);
   const requestId = useRef(0);
   const pending = useRef(false);
-  const maxLength = field === "title" ? 160 : 2000;
-  const label = field === "title" ? "title" : "participant introduction";
+  const maxLength = field === "title" ? 160 : field === "question" ? 1000 : 2000;
+  const label = fieldLabel ?? (field === "title" ? "title" : field === "question" ? "question" : "participant introduction");
 
   useEffect(() => () => {
     requestId.current += 1;

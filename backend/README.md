@@ -2,13 +2,13 @@
 
 ## Organizer voice input and text polishing
 
-The survey builder supports dictating the title and participant introduction separately.
+The survey builder supports dictating the title, participant introduction, and each question separately.
 `POST /api/organizer/transcription-sessions` issues an Amazon Transcribe streaming URL
 using the existing AWS configuration. It requires a guest session and an allowed browser
 origin, and is limited to 20 requests per hour per IP. Audio streams directly from the
 browser to Transcribe; the application does not store it.
 
-`POST /api/organizer/polish-text` accepts `{ field: "title" | "introduction", text: string }`
+`POST /api/organizer/polish-text` accepts `{ field: "title" | "introduction" | "question", text: string }`
 and returns `{ text: string }`. It uses `OPENAI_API_KEY` and `OPENAI_MODEL` from the backend
 environment, independently of the report model provider. This endpoint also requires a
 guest session and allowed origin and is limited to 20 requests per hour per IP. Model calls

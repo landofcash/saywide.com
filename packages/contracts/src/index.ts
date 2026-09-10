@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const polishSurveyTextInputSchema = z.object({
-  field: z.enum(["title", "introduction"]),
+  field: z.enum(["title", "introduction", "question"]),
   text: z.string().trim().min(1).max(2000),
 }).strict();
 export type PolishSurveyTextInput = z.infer<typeof polishSurveyTextInputSchema>;
