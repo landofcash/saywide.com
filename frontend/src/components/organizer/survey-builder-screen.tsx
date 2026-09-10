@@ -189,7 +189,6 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
                   </div>
                   <Textarea id={`question-${index}`} rows={3} maxLength={1000} readOnly={writingBusy || saving} value={question.prompt} onChange={(event) => updateQuestion(index, { prompt: event.target.value })} placeholder="Ask an open-ended question" className="mt-2" />
                   <SurveyWritingControls field="question" fieldLabel={`question ${index + 1}`} value={question.prompt} disabled={writingBusy || saving} onBusyChange={setWritingBusy} onChange={(text) => updateQuestion(index, { prompt: text })} />
-                  <label className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold"><input type="checkbox" className="size-4 accent-[var(--ink)]" checked={question.required} onChange={(event) => updateQuestion(index, { required: event.target.checked })} /> Required answer</label>
                   {question.warning && <p className="mt-2 flex gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><TriangleAlert className="mt-0.5 size-4 shrink-0" /> {question.warning}</p>}
                 </div>
               </div>
