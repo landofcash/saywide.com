@@ -105,15 +105,14 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
       <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
-          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Shape the questions</h1>
+          <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">Set up your survey</h1>
         </div>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-5">
           <Card className="p-5 sm:p-7">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Survey introduction</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Say your survey name, what participants should know (such as its purpose and how their responses will be used) and when the survey should close.</p>
+            <p className="text-sm leading-6 text-[var(--muted)]">Say your survey name, what participants should know (such as its purpose and how their responses will be used) and when the survey should close.</p>
             <div className="mt-5">
               <Label htmlFor="survey-title">Title</Label>
               <Input id="survey-title" value={title} onChange={(event) => { setTitle(event.target.value); setSaveState("idle"); }} placeholder="Quarterly team retrospective" />
