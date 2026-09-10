@@ -173,7 +173,6 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           </div>
 
           <div hidden={step !== 2} className="space-y-5">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Questions</p>
 
           {questions.map((question, index) => (
             <Card key={question.editorId} className="p-5 sm:p-6">
