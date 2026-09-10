@@ -1,7 +1,7 @@
 "use client";
 
 import type { SurveyDraftInput } from "@saywide/contracts";
-import { ArrowDown, ArrowLeft, ArrowUp, Eye, GripVertical, Plus, Send, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, Eye, GripVertical, Plus, Send, Trash2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -130,22 +130,33 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
             </div>
           </Card>
 
-          <section aria-label="Collection settings">
+          <section aria-label="Additional settings">
             <Card className="p-5 sm:p-7">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Collection settings</p>
-              <div className="mt-5">
-                <Label htmlFor="expiry">Close on</Label>
-                <Input id="expiry" type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
-              </div>
-              <div className="mt-5">
-                <Label htmlFor="minimum">Minimum responses for a report</Label>
-                <Input id="minimum" type="number" min={1} max={50} value={minResponses} onChange={(event) => setMinResponses(Number(event.target.value))} />
-                <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
-              </div>
-              <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">
-                <p className="font-bold">Participant privacy</p>
-                <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
-              </div>
+              <details className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--coral)] [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <span className="block text-sm font-bold text-[var(--coral-dark)]">Additional settings</span>
+                    <span className="mt-1 block text-xs leading-5 text-[var(--muted)]">
+                      {expiresAt ? `Closes ${new Date(`${expiresAt}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}` : "No closing date"}
+                      {` · Minimum ${minResponses} ${minResponses === 1 ? "response" : "responses"}`}
+                    </span>
+                  </span>
+                  <ChevronDown className="size-5 shrink-0 text-[var(--muted)] transition-transform group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <div className="mt-5">
+                  <Label htmlFor="expiry">Close on</Label>
+                  <Input id="expiry" type="date" value={expiresAt} onChange={(event) => { setExpiresAt(event.target.value); setSaveState("idle"); }} />
+                </div>
+                <div className="mt-5">
+                  <Label htmlFor="minimum">Minimum responses for a report</Label>
+                  <Input id="minimum" type="number" min={1} max={50} value={minResponses} onChange={(event) => { setMinResponses(Number(event.target.value)); setSaveState("idle"); }} />
+                  <p className="mt-2 text-xs leading-5 text-[var(--muted)]">A minimum helps keep small groups from being singled out.</p>
+                </div>
+                <div className="mt-6 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 text-sm leading-6">
+                  <p className="font-bold">Participant privacy</p>
+                  <p className="mt-1 text-emerald-950/75">Saywide will not ask participants for a name, email, or account.</p>
+                </div>
+              </details>
               <Button variant="secondary" className="mt-5 w-full" onClick={() => void save()} disabled={!valid || saving || writingBusy}>{saving ? "Saving…" : "Save draft"}</Button>
             </Card>
           </section>
