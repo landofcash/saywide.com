@@ -10,10 +10,14 @@ import type { AppConfig } from "./config.js";
 import databasePlugin from "./plugins/database.js";
 import { AppError } from "./errors.js";
 import { SaywideRepository } from "./repositories/saywide-repository.js";
+import { ReportRepository } from "./repositories/report-repository.js";
 import { healthRoutes } from "./routes/health.js";
 import { organizerRoutes } from "./routes/organizer.js";
 import { publicRoutes } from "./routes/public.js";
+import { reportRoutes } from "./routes/reports.js";
 import { surveyRoutes } from "./routes/surveys.js";
+import { StrandsReportAnalyzer, type ReportAnalyzer } from "./services/report-analyzer.js";
+import { ReportService } from "./services/report-service.js";
 import { SaywideService } from "./services/saywide-service.js";
 import {
   AwsTranscriptionSessionSigner,
@@ -24,6 +28,7 @@ export interface BuildAppOptions {
   config: AppConfig;
   pool?: Pool;
   transcriptionSessionSigner?: TranscriptionSessionSigner;
+  reportAnalyzer?: ReportAnalyzer;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -60,9 +65,25 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     const service = new SaywideService(new SaywideRepository(scope.db), options.config);
     const transcriptionSessionSigner = options.transcriptionSessionSigner
       ?? new AwsTranscriptionSessionSigner(options.config);
+    const reportService = new ReportService(
+      new ReportRepository(scope.db),
+      options.reportAnalyzer ?? new StrandsReportAnalyzer(options.config),
+      options.config,
+    );
+    scope.addHook("onReady", async () => {
+      const queuedRequestIds = await reportService.queuedRequestIds();
+      for (const requestId of queuedRequestIds) {
+        setImmediate(() => {
+          void reportService.process(requestId).catch(() => {
+            scope.log.warn({ reportId: requestId, errorCode: "REPORT_PROCESSING_FAILED" }, "Queued report processing failed");
+          });
+        });
+      }
+    });
     scope.register(healthRoutes(service));
     scope.register(organizerRoutes(service, options.config));
     scope.register(surveyRoutes(service, options.config));
+    scope.register(reportRoutes(service, reportService, options.config));
     scope.register(publicRoutes(service, transcriptionSessionSigner, options.config));
   });
 

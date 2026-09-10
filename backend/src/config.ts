@@ -10,7 +10,11 @@ const environmentSchema = z.object({
   TOKEN_DERIVATION_SECRET: z.string().min(32),
   GUEST_CREDENTIAL_DAYS: z.coerce.number().int().min(1).max(730).default(365),
   RESPONSE_SESSION_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
+  MODEL_PROVIDER: z.enum(["openai", "bedrock"]).default("openai"),
+  OPENAI_MODEL: z.string().trim().min(1).default("gpt-5.6-luna"),
+  REPORT_MAX_RESPONSES: z.coerce.number().int().min(2).max(500).default(30),
   AWS_REGION: z.string().trim().min(1).default("us-east-1"),
+  BEDROCK_MODEL_ID: z.string().trim().min(1).default("amazon.nova-micro-v1:0"),
   AWS_PROFILE: z.preprocess(
     (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
     z.string().trim().min(1).optional(),
@@ -31,7 +35,11 @@ export interface AppConfig {
   tokenDerivationSecret: string;
   guestCredentialDays: number;
   responseSessionMinutes: number;
+  modelProvider: "openai" | "bedrock";
+  openAiModelId: string;
+  reportMaxResponses: number;
   awsRegion: string;
+  bedrockModelId: string;
   awsProfile?: string;
   transcribeLanguageCode: "en-US";
   transcribeSignedUrlSeconds: number;
@@ -51,7 +59,11 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     tokenDerivationSecret: parsed.TOKEN_DERIVATION_SECRET,
     guestCredentialDays: parsed.GUEST_CREDENTIAL_DAYS,
     responseSessionMinutes: parsed.RESPONSE_SESSION_MINUTES,
+    modelProvider: parsed.MODEL_PROVIDER,
+    openAiModelId: parsed.OPENAI_MODEL,
+    reportMaxResponses: parsed.REPORT_MAX_RESPONSES,
     awsRegion: parsed.AWS_REGION,
+    bedrockModelId: parsed.BEDROCK_MODEL_ID,
     awsProfile: parsed.AWS_PROFILE,
     transcribeLanguageCode: parsed.TRANSCRIBE_LANGUAGE_CODE,
     transcribeSignedUrlSeconds: parsed.TRANSCRIBE_SIGNED_URL_SECONDS,

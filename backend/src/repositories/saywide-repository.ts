@@ -34,6 +34,7 @@ interface SurveyRow extends QueryResultRow {
   started_response_count: string;
   submitted_response_count: string;
   last_submitted_at: Date | null;
+  report_state: string;
 }
 
 interface QuestionRow extends QueryResultRow {
@@ -63,10 +64,6 @@ interface IdempotencyRow extends QueryResultRow {
 const iso = (value: Date | string): string => value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 const nullableIso = (value: Date | string | null): string | null => value ? iso(value) : null;
 
-function reportState(): string {
-  return "Not started";
-}
-
 function toSummary(row: SurveyRow): SurveySummary {
   return {
     surveyId: row.id,
@@ -74,7 +71,7 @@ function toSummary(row: SurveyRow): SurveySummary {
     status: row.status,
     questionCount: Number(row.question_count),
     submittedResponseCount: Number(row.submitted_response_count),
-    reportState: reportState(),
+    reportState: row.report_state,
     expiresAt: nullableIso(row.expires_at),
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
@@ -150,7 +147,12 @@ export class SaywideRepository {
         (SELECT count(*) FROM question q WHERE q.survey_id = s.id) AS question_count,
         (SELECT count(*) FROM response_session rs WHERE rs.survey_id = s.id) AS started_response_count,
         (SELECT count(*) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS submitted_response_count,
-        (SELECT max(rs.submitted_at) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS last_submitted_at
+        (SELECT max(rs.submitted_at) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS last_submitted_at,
+        COALESCE((SELECT CASE
+          WHEN rr.status = 'completed' THEN 'Complete'
+          WHEN rr.status = 'failed' THEN 'Failed'
+          ELSE 'In progress'
+        END FROM report_request rr WHERE rr.survey_id = s.id ORDER BY rr.created_at DESC LIMIT 1), 'Not started') AS report_state
       FROM survey s
       WHERE s.organizer_id = $1 ${statusClause}
       ORDER BY s.updated_at DESC, s.id DESC
@@ -165,7 +167,12 @@ export class SaywideRepository {
         (SELECT count(*) FROM question q WHERE q.survey_id = s.id) AS question_count,
         (SELECT count(*) FROM response_session rs WHERE rs.survey_id = s.id) AS started_response_count,
         (SELECT count(*) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS submitted_response_count,
-        (SELECT max(rs.submitted_at) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS last_submitted_at
+        (SELECT max(rs.submitted_at) FROM response_session rs WHERE rs.survey_id = s.id AND rs.status = 'submitted') AS last_submitted_at,
+        COALESCE((SELECT CASE
+          WHEN rr.status = 'completed' THEN 'Complete'
+          WHEN rr.status = 'failed' THEN 'Failed'
+          ELSE 'In progress'
+        END FROM report_request rr WHERE rr.survey_id = s.id ORDER BY rr.created_at DESC LIMIT 1), 'Not started') AS report_state
       FROM survey s
       WHERE s.id = $1 AND s.organizer_id = $2
       LIMIT 1
@@ -271,7 +278,8 @@ export class SaywideRepository {
 
   async getPublicSurvey(publicToken: string, queryable: Queryable = this.pool): Promise<{ survey: PublicSurvey; id: string; accessCodeHash: string | null; expiresAt: Date | null } | null> {
     const result = await queryable.query<SurveyRow>(`
-      SELECT s.*, '0' AS question_count, '0' AS started_response_count, '0' AS submitted_response_count, NULL::timestamptz AS last_submitted_at
+      SELECT s.*, '0' AS question_count, '0' AS started_response_count, '0' AS submitted_response_count,
+        NULL::timestamptz AS last_submitted_at, 'Not started' AS report_state
       FROM survey s WHERE s.public_token = $1 AND s.status <> 'archived' LIMIT 1
     `, [publicToken]);
     const row = result.rows[0];

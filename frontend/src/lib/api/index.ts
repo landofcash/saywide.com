@@ -7,7 +7,7 @@ export const api = isMockApi ? mockSaywideApi : httpSaywideApi;
 export const apiCapabilities: ApiCapabilities = {
   accounts: isMockApi,
   goalDrafting: isMockApi,
-  reports: isMockApi,
+  reports: true,
   voice: true,
 };
 export type { ApiCapabilities, SaywideApi } from "./types";

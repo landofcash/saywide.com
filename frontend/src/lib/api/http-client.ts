@@ -1,6 +1,9 @@
 import type {
   ApiError,
+  CreateReportResponse,
   PublicSurvey,
+  ReportResult,
+  ReportSummary,
   ResponseSession,
   StartResponseInput,
   SurveyDetail,
@@ -138,16 +141,25 @@ export const httpSaywideApi: SaywideApi = {
     return this.getSurvey(surveyId);
   },
 
-  async listReports() {
-    return unavailable("Reports");
+  async listReports(surveyId) {
+    await ensureGuestSession();
+    return (await request<{ items: ReportSummary[]; nextCursor: string | null }>(
+      `/api/surveys/${encodeURIComponent(surveyId)}/reports`,
+    )).items;
   },
 
-  async createReport() {
-    return unavailable("Reports");
+  async createReport(surveyId, instruction) {
+    await ensureGuestSession();
+    return request<CreateReportResponse>(`/api/surveys/${encodeURIComponent(surveyId)}/reports`, {
+      method: "POST",
+      headers: { "Idempotency-Key": crypto.randomUUID() },
+      body: JSON.stringify({ instruction }),
+    });
   },
 
-  async getReport() {
-    return unavailable("Reports");
+  async getReport(reportId) {
+    await ensureGuestSession();
+    return request<ReportResult>(`/api/reports/${encodeURIComponent(reportId)}`);
   },
 
   getPublicSurvey,

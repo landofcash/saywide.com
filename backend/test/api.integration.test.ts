@@ -26,7 +26,11 @@ const config: AppConfig = {
   tokenDerivationSecret: "test-only-derivation-secret-with-32-characters",
   guestCredentialDays: 365,
   responseSessionMinutes: 60,
+  modelProvider: "openai",
+  openAiModelId: "gpt-5.6-luna",
+  reportMaxResponses: 30,
   awsRegion: "us-east-1",
+  bedrockModelId: "amazon.nova-micro-v1:0",
   transcribeLanguageCode: "en-US",
   transcribeSignedUrlSeconds: 60,
   transcribeRecordingLimitSeconds: 120,
@@ -35,6 +39,41 @@ const config: AppConfig = {
 const app = buildApp({
   config,
   pool,
+  reportAnalyzer: {
+    async analyze(snapshot) {
+      const [first, second] = snapshot.responses;
+      const firstAnswer = first.answers[0];
+      return {
+        candidate: {
+          findings: [
+            {
+              title: "A shared pattern",
+              category: "opportunity",
+              summary: "Both submitted sessions support the same practical theme.",
+              suggestedAction: "Test one small improvement with the group.",
+              assignments: [first, second].map((response) => ({
+                responseSessionId: response.responseSessionId,
+                questionId: response.answers[0].questionId,
+                reason: "The answer directly supports this theme.",
+              })),
+              evidence: [{ answerId: firstAnswer.answerId, excerpt: firstAnswer.text }],
+            },
+            {
+              title: "Invalid references are removed",
+              category: "friction",
+              summary: "This finding must not be persisted.",
+              suggestedAction: "Do not show this.",
+              assignments: [{ responseSessionId: randomUUID(), questionId: randomUUID(), reason: "Invented references." }],
+              evidence: [{ answerId: randomUUID(), excerpt: "Invented evidence." }],
+            },
+          ],
+          limitations: ["This is a synthetic integration fixture."],
+          followUpQuestions: ["What should we test next?"],
+        },
+        usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
+      };
+    },
+  },
   transcriptionSessionSigner: {
     async issueSession() {
       return {
@@ -125,6 +164,15 @@ describe("Phase 1 API", () => {
     expect(published.statusCode).toBe(200);
     const { publicToken } = published.json();
 
+    const prematureReport = await app.inject({
+      method: "POST",
+      url: `/api/surveys/${survey.surveyId}/reports`,
+      headers: { origin, cookie: cookie! },
+      payload: { instruction: "Find the most important patterns in these responses." },
+    });
+    expect(prematureReport.statusCode).toBe(422);
+    expect(prematureReport.json().error.code).toBe("TOO_FEW_RESPONSES");
+
     const publicSurvey = await app.inject({ method: "GET", url: `/api/public/s/${publicToken}` });
     expect(publicSurvey.statusCode).toBe(200);
     const publicBody = publicSurvey.json();
@@ -175,6 +223,15 @@ describe("Phase 1 API", () => {
     expect(secondStart.statusCode).toBe(201);
     const secondSession = secondStart.json();
 
+    const thirdStart = await app.inject({
+      method: "POST",
+      url: `/api/public/s/${publicToken}/sessions`,
+      headers: { "idempotency-key": "response-three" },
+      payload: { consentVersion: publicBody.consentVersion },
+    });
+    expect(thirdStart.statusCode).toBe(201);
+    const thirdSession = thirdStart.json();
+
     const closed = await app.inject({
       method: "POST",
       url: `/api/surveys/${survey.surveyId}/close`,
@@ -216,11 +273,94 @@ describe("Phase 1 API", () => {
       headers: { cookie: cookie! },
     });
     expect(summary.json()).toMatchObject({
-      startedResponseCount: 2,
+      startedResponseCount: 3,
       submittedResponseCount: 2,
       minReportResponses: 2,
       reportEligible: true,
     });
+
+    const acceptedReport = await app.inject({
+      method: "POST",
+      url: `/api/surveys/${survey.surveyId}/reports`,
+      headers: { origin, cookie: cookie!, "idempotency-key": "report-quarterly-reflection" },
+      payload: { instruction: "Find the most important patterns and suggest a practical next step." },
+    });
+    expect(acceptedReport.statusCode, acceptedReport.body).toBe(202);
+    expect(acceptedReport.json()).toMatchObject({ status: "queued" });
+    const reportId = acceptedReport.json().reportId as string;
+
+    const acceptedReportRetry = await app.inject({
+      method: "POST",
+      url: `/api/surveys/${survey.surveyId}/reports`,
+      headers: { origin, cookie: cookie!, "idempotency-key": "report-quarterly-reflection" },
+      payload: { instruction: "Find the most important patterns and suggest a practical next step." },
+    });
+    expect(acceptedReportRetry.statusCode).toBe(202);
+    expect(acceptedReportRetry.json().reportId).toBe(reportId);
+
+    for (const [index, question] of publicBody.questions.entries()) {
+      const saved = await app.inject({
+        method: "PUT",
+        url: `/api/public/sessions/${thirdSession.sessionId}/answers/${question.questionId}`,
+        headers: { authorization: `Bearer ${thirdSession.sessionToken}` },
+        payload: { finalText: `Late response ${index + 1}`, inputMode: "text", audioStatus: "not_used" },
+      });
+      expect(saved.statusCode).toBe(200);
+    }
+    const lateSubmission = await app.inject({
+      method: "POST",
+      url: `/api/public/sessions/${thirdSession.sessionId}/submit`,
+      headers: { authorization: `Bearer ${thirdSession.sessionToken}` },
+      payload: { consentVersion: publicBody.consentVersion },
+    });
+    expect(lateSubmission.statusCode).toBe(200);
+
+    let reportResult: ReturnType<typeof acceptedReport.json> | undefined;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const response = await app.inject({ method: "GET", url: `/api/reports/${reportId}`, headers: { cookie: cookie! } });
+      expect(response.statusCode).toBe(200);
+      reportResult = response.json();
+      if (reportResult.status === "completed" || reportResult.status === "failed") break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    expect(reportResult).toMatchObject({
+      status: "completed",
+      report: {
+        reportId,
+        eligibleResponseCount: 2,
+        markdown: expect.stringContaining("### Evidence"),
+        findings: [{ supportCount: 2, supportPercentage: 100, confidence: "medium" }],
+      },
+    });
+    expect(reportResult.report.findings).toHaveLength(1);
+
+    const trace = await pool.query<{ event_type: string; tool_name: string | null }>(`
+      SELECT ae.event_type, ae.tool_name
+      FROM agent_event ae JOIN agent_run ar ON ar.id = ae.agent_run_id
+      WHERE ar.report_request_id = $1 ORDER BY ae.sequence
+    `, [reportId]);
+    expect(trace.rows.map((row) => row.event_type)).toEqual([
+      "queued", "snapshot_started", "snapshot_loaded", "themes_extracted", "evidence_validated", "completed",
+    ]);
+
+    const assignments = await pool.query<{ validated: boolean }>(`
+      SELECT ta.validated FROM theme_assignment ta
+      JOIN finding f ON f.id = ta.finding_id
+      JOIN report r ON r.id = f.report_id
+      WHERE r.report_request_id = $1
+    `, [reportId]);
+    expect(assignments.rows).toHaveLength(2);
+    expect(assignments.rows.every((row) => row.validated)).toBe(true);
+
+    const strangerGuest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+    const strangerCookie = strangerGuest.headers["set-cookie"]?.toString().split(";")[0];
+    const unownedReport = await app.inject({
+      method: "GET",
+      url: `/api/reports/${reportId}`,
+      headers: { cookie: strangerCookie! },
+    });
+    expect(unownedReport.statusCode).toBe(404);
+    expect(unownedReport.json().error.code).toBe("REPORT_NOT_FOUND");
 
     const storedToken = await pool.query<{ session_token_hash: Buffer }>(
       "SELECT session_token_hash FROM response_session WHERE client_session_id = $1",

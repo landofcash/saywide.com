@@ -91,6 +91,7 @@ export function createInitialState(): MockState {
         eligibleResponseCount: 12,
         createdAt: "2026-09-05T09:25:00.000Z",
         completedAt: "2026-09-05T09:27:00.000Z",
+        markdown: "# Quarterly team retrospective\n\nFind the strongest patterns, the biggest friction points, and practical actions for next quarter.",
         limitations: [
           "The report describes 12 submitted responses, not 12 verified unique people.",
           "Open-ended responses may overrepresent experiences participants felt strongly about.",
@@ -131,7 +132,7 @@ export function createInitialState(): MockState {
             summary: "A smaller group said fast live discussions favor the loudest perspective and asked for questions in advance.",
             supportCount: 3,
             supportPercentage: 25,
-            confidence: "emerging",
+            confidence: "low",
             suggestedAction: "Share discussion prompts one day ahead and collect a short written view before the meeting.",
             evidence: [
               { label: "Response A06", excerpt: "I usually have the useful thought after the call, not while five people are speaking." },

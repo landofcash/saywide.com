@@ -218,6 +218,8 @@ Stores the immutable, validated report produced for one report request.
 | `markdown` | `text` | No | — | Final organizer-facing Markdown generated only after deterministic count, evidence, and privacy validation. |
 | `eligible_response_count` | `integer` | No | — | Number of submitted response sessions included in the frozen snapshot. Must be non-negative and meet the survey threshold. |
 | `limitations` | `jsonb` | No | `'[]'::jsonb` | Ordered array of plain-language caveats included with the report. |
+| `minority_views` | `jsonb` | No | `'[]'::jsonb` | Ordered array of validated minority-view summaries included with the report. Added by migration `002_report_sections`. |
+| `follow_up_questions` | `jsonb` | No | `'[]'::jsonb` | Ordered array of bounded follow-up questions included with the report. Added by migration `002_report_sections`. |
 | `created_at` | `timestamptz` | No | `now()` | Time the validated report was persisted. |
 
 ### 4.12 `finding`
@@ -230,7 +232,7 @@ Stores one ordered, evidence-backed finding within a report. Counts are calculat
 | `report_id` | `uuid` | No | — | Foreign key to `report.id`. Uses `ON DELETE CASCADE`. |
 | `position` | `smallint` | No | — | One-based display order within the report. Unique per report. |
 | `title` | `text` | No | — | Short organizer-facing name for the consolidated theme or concern. |
-| `category` | `text` | No | — | Stable application category such as `problem`, `like`, `suggestion`, or `minority_concern`. |
+| `category` | `text` | No | — | Stable application category: `strength`, `friction`, `minority-view`, or `opportunity`. |
 | `summary` | `text` | No | — | Plain-language explanation of the finding, bounded by validated evidence. |
 | `support_count` | `integer` | No | — | Deterministic number of distinct eligible response sessions assigned to this finding. Must be non-negative. |
 | `support_percent` | `numeric(5,2)` | No | — | `support_count / eligible_response_count * 100`, rounded consistently and constrained from 0 through 100. |
@@ -277,7 +279,7 @@ in addition to the fourteen product-domain tables above.
 | `id` | `uuid` | No | Application generated | Primary key and non-secret derivation input for retryable response sessions. |
 | `scope_kind` | `text` | No | — | Retry scope: `organizer` or `public_survey`. |
 | `scope_id` | `uuid` | No | — | Authorized organizer or internal public-survey context. It is not exposed to the caller. |
-| `operation` | `text` | No | — | Stable operation name such as `create_survey` or `start_response`. |
+| `operation` | `text` | No | — | Stable operation name such as `create_survey`, `start_response`, or `create_report`. |
 | `key_hash` | `bytea` | No | — | One-way hash of the caller's idempotency key; the raw header is never stored. |
 | `request_hash` | `bytea` | No | — | Canonical request-body hash used to reject reuse with different input. |
 | `resource_id` | `uuid` | No | — | Internal resource produced by the successful operation. |

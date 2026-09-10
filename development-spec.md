@@ -299,14 +299,14 @@ The agents can share the same runtime but should use separate system prompts and
 - Backend framework: Fastify on Node.js 22 or later.
 - Agent package: `@strands-agents/sdk`.
 - Runtime validation and type inference: Zod.
-- Model provider: Amazon Bedrock through the Strands `BedrockModel` adapter.
+- Primary model provider: OpenAI through the Strands `OpenAIModel` Responses API adapter; Amazon Bedrock remains a configurable fallback.
 - Package manager and workspace: pnpm.
-- Agent execution: backend only. Long-lived AWS credentials and Bedrock access never reach the frontend or browser; the speech client may receive only a short-lived, transcription-only signed stream URL from the API.
+- Agent execution: backend only. OpenAI API keys, AWS credentials, and model access never reach the frontend or browser; the speech client may receive only a short-lived, transcription-only signed stream URL from the API.
 
 Minimal installation:
 
 ```bash
-pnpm --filter @saywide/backend add @strands-agents/sdk zod
+pnpm --filter @saywide/backend add @strands-agents/sdk openai zod
 ```
 
 Minimal typed tool pattern:
@@ -372,13 +372,13 @@ flowchart TD
 
 ### 11.6 Model strategy
 
-- Use a hosted model from the backend for the hackathon; Amazon Bedrock is the preferred AWS-aligned option.
-- Keep the model adapter configurable so development can use another Strands-supported provider.
+- Use OpenAI through the backend Strands adapter as the primary hackathon model provider.
+- Keep Amazon Bedrock configurable as a fallback while its project-level invocation restriction remains unresolved.
 - Do not make a local phone model part of the critical path.
 - Use lower temperature for extraction and validation.
 - Require Zod-constrained structured output for themes and reports.
-- Use Strands streaming events to drive safe report progress updates.
-- Use Strands hooks/plugins to log tool names, durations, token usage, and sanitized failure information.
+- Persist allowlisted workflow-stage events and use report-status polling to drive safe progress updates; add SSE delivery after the vertical slice.
+- Record tool names, durations, token usage, and sanitized failure information in `agent_run` and `agent_event` without storing model payloads.
 
 ### 11.7 Agent safety boundaries
 
@@ -420,7 +420,7 @@ flowchart TB
 
     subgraph Providers[AI providers]
         STT[Amazon Transcribe Streaming]
-        M[Amazon Bedrock model]
+        M[OpenAI model; Bedrock fallback]
     end
 
     UI -. serves .-> O
@@ -457,7 +457,7 @@ flowchart TB
 | Organizer access | Browser-bound guest capability with optional email/password account | Removes the first-use login wall while retaining authorization and cross-device account access. |
 | Validation | Zod | Shared runtime validation for API contracts and agent tools. |
 | Agent runtime | `@strands-agents/sdk` | Type-safe Strands agents, tools, structured output, and streaming. |
-| Model | Amazon Bedrock model through Strands | AWS-aligned hosted inference. |
+| Model | OpenAI Responses API through Strands; Amazon Bedrock fallback | Working hosted inference while keeping the model adapter configurable. |
 | Database | Railway-managed PostgreSQL | Authoritative storage for organizers, surveys, anonymous responses, report snapshots, findings, and agent events. |
 | Jobs | Lightweight database-backed queue initially | Avoid unnecessary infrastructure in a short build. |
 | Speech-to-text | Amazon Transcribe Streaming | Uses one AWS-native real-time transcription path and avoids a second provider integration. |

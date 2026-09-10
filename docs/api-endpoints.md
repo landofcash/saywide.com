@@ -8,13 +8,14 @@ This document defines the Fastify backend endpoints used by the Saywide frontend
 
 ### 1.1 Implementation status
 
-The current Phase 1 backend implements health, guest-session creation and
+The current backend implements health, guest-session creation and
 restoration, manual survey creation/read/update/publish/close/reopen/summary,
 public survey reads, anonymous response sessions, text answer upserts, and
 submission. The minimal direct browser-to-Amazon Transcribe authorization route
-is also implemented. Account, survey-generation agent, and report routes below
-remain the target contract and are not registered yet. The frontend hides those
-capabilities whenever `NEXT_PUBLIC_USE_MOCK_API=false`.
+is also implemented. Report list, request, and polling routes run the bounded
+Strands report workflow and persist privacy-safe progress records. The SSE event
+route remains a target contract; the current frontend polls report status.
+Account and survey-generation agent routes remain unimplemented.
 
 The production API origin is intended to be `https://api.saywide.com`. Paths below are relative to that origin. The public participant page remains on the frontend at `https://saywide.com/s/{publicToken}` and loads its data from this API.
 
@@ -295,8 +296,9 @@ Freezes the eligible response snapshot and queues a Strands report run for the o
 - **Authentication:** Valid owner guest or account-session cookie.
 - **Request:** `{ instruction }`.
 - **Success:** `202` with `{ reportId, reportRequestId, status: "queued", snapshotAt }`.
-- **Failures:** `404 SURVEY_NOT_FOUND`, `409 REPORT_ALREADY_RUNNING`, `422 TOO_FEW_RESPONSES`, `429 AGENT_LIMITED`, or `503 AGENT_UNAVAILABLE`.
+- **Failures:** `404 SURVEY_NOT_FOUND`, `409 REPORT_ALREADY_RUNNING`, `422 TOO_FEW_RESPONSES`, `422 REPORT_RESPONSE_LIMIT_EXCEEDED`, `429 AGENT_LIMITED`, or `503 AGENT_UNAVAILABLE`.
 - **Rules:** `snapshotAt` is fixed when accepted. Later submissions do not change this report. The endpoint never accepts organizer-provided counts or evidence IDs.
+- **Current bounded slice:** snapshots over `REPORT_MAX_RESPONSES` (30 by default) are rejected until a batching workflow is implemented.
 
 ### `GET /api/reports/{reportId}`
 

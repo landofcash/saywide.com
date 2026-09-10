@@ -188,14 +188,24 @@ export const mockSaywideApi: SaywideApi = {
     state.reports.unshift(report);
     survey.reportState = "Complete";
     writeState(state);
-    return report;
+    return {
+      reportId: report.reportId,
+      reportRequestId: report.reportId,
+      status: "queued",
+      snapshotAt: report.snapshotAt,
+    };
   },
 
   async getReport(reportId) {
     await pause(300);
     const report = readState().reports.find((item) => item.reportId === reportId);
     if (!report) throw new Error("Report not found");
-    return structuredClone(report);
+    return {
+      reportId: report.reportId,
+      status: "completed",
+      snapshotAt: report.snapshotAt,
+      report: structuredClone(report),
+    };
   },
 
   async getPublicSurvey(publicToken) {

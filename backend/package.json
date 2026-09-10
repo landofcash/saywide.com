@@ -10,6 +10,7 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "model:smoke": "node dist/scripts/model-smoke.js",
     "db:migrate": "dotenv -e .env -- node-pg-migrate up -j ts -m migrations",
     "db:migrate:deploy": "node-pg-migrate up -j ts -m migrations",
     "db:rollback": "dotenv -e .env -- node-pg-migrate down -j ts -m migrations"
@@ -25,10 +26,12 @@
     "@saywide/contracts": "workspace:*",
     "@smithy/protocol-http": "^5.6.2",
     "@smithy/signature-v4": "^5.7.3",
+    "@strands-agents/sdk": "^1.16.0",
     "fastify": "^5.12.3",
     "fastify-plugin": "^6.0.0",
     "fastify-type-provider-zod": "^7.0.0",
     "node-pg-migrate": "^9.0.0",
+    "openai": "6.45.0",
     "pg": "^8.23.0",
     "zod": "4.1.12"
   },

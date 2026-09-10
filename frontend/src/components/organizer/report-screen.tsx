@@ -17,35 +17,41 @@ const progressSteps = ["Preparing response snapshot", "Finding themes", "Checkin
 export function ReportScreen({ reportId }: { reportId: string }) {
   const [report, setReport] = useState<Report | null>(null);
   const [step, setStep] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    let interval: number | undefined;
-    void api.getReport(reportId).then((item) => {
-      if (!active) return;
-      setReport(item);
-      let current = 0;
-      interval = window.setInterval(() => {
-        current += 1;
-        setStep(current);
-        if (current >= progressSteps.length) {
-          window.clearInterval(interval);
-          setReady(true);
+    let timeout: number | undefined;
+
+    async function refresh() {
+      try {
+        const result = await api.getReport(reportId);
+        if (!active) return;
+        if (result.status === "completed") {
+          setStep(progressSteps.length);
+          setReport(result.report);
+          return;
         }
-      }, 240);
-    });
-    return () => {
-      active = false;
-      if (interval) window.clearInterval(interval);
-    };
+        if (result.status === "failed") {
+          setError("The report could not be completed. Your responses are safe; start another report to retry.");
+          return;
+        }
+        const progressIndex = progressSteps.indexOf(result.progress);
+        setStep(progressIndex < 0 ? 0 : progressIndex);
+        timeout = window.setTimeout(refresh, 1000);
+      } catch {
+        if (!active) return;
+        setError("The report status could not be loaded. Please refresh this page.");
+      }
+    }
+
+    void refresh();
+    return () => { active = false; if (timeout) window.clearTimeout(timeout); };
   }, [reportId]);
 
   function downloadMarkdown() {
     if (!report) return;
-    const findings = report.findings.map((finding) => `## ${finding.title}\n\n${finding.summary}\n\n- Support: ${finding.supportCount}/${report.eligibleResponseCount} (${finding.supportPercentage}%)\n- Confidence: ${finding.confidence}\n- Suggested action: ${finding.suggestedAction}`).join("\n\n");
-    const content = `# ${report.surveyTitle}\n\n${report.instruction}\n\n${findings}\n\n## Limitations\n\n${report.limitations.map((item) => `- ${item}`).join("\n")}`;
-    const url = URL.createObjectURL(new Blob([content], { type: "text/markdown" }));
+    const url = URL.createObjectURL(new Blob([report.markdown], { type: "text/markdown" }));
     const link = document.createElement("a");
     link.href = url;
     link.download = "saywide-report.md";
@@ -53,7 +59,7 @@ export function ReportScreen({ reportId }: { reportId: string }) {
     URL.revokeObjectURL(url);
   }
 
-  if (!report || !ready) {
+  if (!report) {
     return (
       <OrganizerShell>
         <div className="mx-auto max-w-2xl pt-10 text-center">
@@ -61,6 +67,7 @@ export function ReportScreen({ reportId }: { reportId: string }) {
           <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Building your report</p>
           <h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">Following the evidence</h1>
           <div className="mx-auto mt-8 max-w-md space-y-3 text-left" aria-live="polite">{progressSteps.map((label, index) => <div key={label} className={`flex items-center gap-3 rounded-lg border p-4 ${index < step ? "border-emerald-300 bg-[var(--mint-soft)]" : index === step ? "border-[var(--ink)] bg-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}><span className={`grid size-7 place-items-center rounded-md ${index < step ? "bg-emerald-700 text-white" : "bg-[var(--canvas)]"}`}>{index < step ? <Check className="size-4" /> : index + 1}</span><span className="text-sm font-semibold">{label}</span></div>)}</div>
+          {error && <p role="alert" className="mx-auto mt-6 max-w-md rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
         </div>
       </OrganizerShell>
     );

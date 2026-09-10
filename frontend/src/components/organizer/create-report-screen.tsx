@@ -35,8 +35,8 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
     try {
       const report = await api.createReport(surveyId, instruction.trim());
       router.push(`/reports/${report.reportId}`);
-    } catch {
-      setError("The report could not be started. Your instruction is still here—please try again.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The report could not be started. Your instruction is still here—please try again.");
       setCreating(false);
     }
   }

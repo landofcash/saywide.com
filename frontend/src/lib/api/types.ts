@@ -1,7 +1,8 @@
 import type {
   ParticipantAnswers,
   PublicSurvey,
-  Report,
+  CreateReportResponse,
+  ReportResult,
   ReportSummary,
   ResponseSession,
   StartResponseInput,
@@ -21,8 +22,8 @@ export interface SaywideApi {
   publishSurvey(surveyId: string): Promise<SurveyDetail>;
   changeSurveyStatus(surveyId: string, status: Extract<SurveyStatus, "open" | "closed">): Promise<SurveyDetail>;
   listReports(surveyId: string): Promise<ReportSummary[]>;
-  createReport(surveyId: string, instruction: string): Promise<Report>;
-  getReport(reportId: string): Promise<Report>;
+  createReport(surveyId: string, instruction: string): Promise<CreateReportResponse>;
+  getReport(reportId: string): Promise<ReportResult>;
   getPublicSurvey(publicToken: string): Promise<PublicSurvey>;
   startResponse(publicToken: string, input: StartResponseInput): Promise<ResponseSession>;
   createTranscriptionSession(publicToken: string, questionId: string): Promise<TranscriptionSessionResponse>;

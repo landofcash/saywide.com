@@ -74,6 +74,19 @@ export const reportSummarySchema = z.object({
 });
 export type ReportSummary = z.infer<typeof reportSummarySchema>;
 
+export const createReportInputSchema = z.object({
+  instruction: z.string().trim().min(12).max(2000),
+});
+export type CreateReportInput = z.infer<typeof createReportInputSchema>;
+
+export const createReportResponseSchema = z.object({
+  reportId: z.string(),
+  reportRequestId: z.string(),
+  status: z.literal("queued"),
+  snapshotAt: z.string(),
+});
+export type CreateReportResponse = z.infer<typeof createReportResponseSchema>;
+
 export const evidenceSchema = z.object({
   label: z.string(),
   excerpt: z.string(),
@@ -87,7 +100,7 @@ export const findingSchema = z.object({
   summary: z.string(),
   supportCount: z.number().int().nonnegative(),
   supportPercentage: z.number().min(0).max(100),
-  confidence: z.enum(["high", "medium", "emerging"]),
+  confidence: z.enum(["high", "medium", "low"]),
   suggestedAction: z.string(),
   evidence: z.array(evidenceSchema),
 });
@@ -95,12 +108,42 @@ export type Finding = z.infer<typeof findingSchema>;
 
 export const reportSchema = reportSummarySchema.extend({
   surveyTitle: z.string(),
+  markdown: z.string(),
   limitations: z.array(z.string()),
   findings: z.array(findingSchema),
   minorityViews: z.array(z.string()),
   followUpQuestions: z.array(z.string()),
 });
 export type Report = z.infer<typeof reportSchema>;
+
+export const reportProgressSchema = z.object({
+  reportId: z.string(),
+  status: z.enum(["queued", "running"]),
+  snapshotAt: z.string(),
+  progress: z.string(),
+});
+
+export const reportFailureSchema = z.object({
+  reportId: z.string(),
+  status: z.literal("failed"),
+  snapshotAt: z.string(),
+  retryable: z.boolean(),
+  errorCode: z.string(),
+});
+
+export const completedReportResponseSchema = z.object({
+  reportId: z.string(),
+  status: z.literal("completed"),
+  snapshotAt: z.string(),
+  report: reportSchema,
+});
+
+export const reportResultSchema = z.discriminatedUnion("status", [
+  reportProgressSchema,
+  reportFailureSchema,
+  completedReportResponseSchema,
+]);
+export type ReportResult = z.infer<typeof reportResultSchema>;
 
 export const publicSurveySchema = z.object({
   publicToken: z.string(),
