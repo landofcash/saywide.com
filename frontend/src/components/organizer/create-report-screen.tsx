@@ -55,12 +55,14 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
       <div className="mx-auto mt-5 max-w-4xl">
         <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Simply say what you want the report to cover. Saywide will find the patterns, show the supporting responses, and create the report for you.</p></div>
         <Card className="mt-8 p-5 sm:p-8">
-          <div className="flex flex-col gap-4 rounded-lg border-l-4 border-l-[var(--coral)] bg-[var(--canvas)] p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="font-bold">{survey.title}</p><p className="mt-1 text-sm text-emerald-950/70">{pluralize(eligible, "submitted response")} available now</p></div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--line)] pb-5 text-sm text-[var(--muted)]">
+            <span className="font-semibold text-[var(--ink)]">Report for: {survey.title}</span>
+            <span>{pluralize(eligible, "submitted response")}</span>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
           </div>
-          <div className="mt-7"><Label htmlFor="report-instruction">What should Saywide look for?</Label><Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="text-base leading-7" /></div>
-          <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
+          <section className="mt-7" aria-labelledby="suggested-reports-heading">
+            <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggested reports</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">Choose one to get started.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {examples.map((example) => (
               <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="rounded-lg border border-[var(--line)] bg-white p-4 text-left disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)]">
@@ -69,6 +71,13 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
               </button>
             ))}
           </div>
+          </section>
+          <section className="mt-8 border-t border-[var(--line)] pt-7" aria-labelledby="custom-report-heading">
+            <h2 id="custom-report-heading" className="text-xl font-bold">Or create your own</h2>
+            <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
+            <Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
+            <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
+          </section>
           <div className="mt-7 grid gap-3 sm:grid-cols-3">
             {[["1", "Freeze the response snapshot"], ["2", "Find and count patterns"], ["3", "Validate every finding"]].map(([number, label]) => <div key={number} className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-3 text-sm font-semibold"><span className="grid size-7 shrink-0 place-items-center rounded-md bg-white text-xs">{number}</span>{label}</div>)}
           </div>
