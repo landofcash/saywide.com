@@ -53,7 +53,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
     <OrganizerShell>
       <Link href={`/surveys/${surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link>
       <div className="mx-auto mt-5 max-w-4xl">
-        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Simply say what you want the report to cover. Saywide will find the patterns, show the supporting responses, and create the report for you.</p></div>
+        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">Say what you want to explore, or choose a suggestion to get started. Saywide will find the patterns, show what people said, and create your report.</p></div>
         <Card className="mt-8 p-5 sm:p-8">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--line)] pb-5 text-sm text-[var(--muted)]">
             <span className="font-semibold text-[var(--ink)]">Report for: {survey.title}</span>
