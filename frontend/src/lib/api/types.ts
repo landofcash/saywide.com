@@ -1,4 +1,5 @@
 import type {
+  GeneratedSurveyDraft,
   PolishSurveyTextInput,
   PolishSurveyTextResponse,
   ParticipantAnswers,
@@ -20,7 +21,7 @@ export interface SaywideApi {
   polishSurveyText(input: PolishSurveyTextInput): Promise<PolishSurveyTextResponse>;
   listSurveys(): Promise<SurveySummary[]>;
   getSurvey(surveyId: string): Promise<SurveyDetail>;
-  draftSurveyFromGoal(goal: string): Promise<SurveyDetail>;
+  draftSurveyFromGoal(goal: string, signal?: AbortSignal): Promise<GeneratedSurveyDraft>;
   createSurvey(input: SurveyDraftInput): Promise<SurveyDetail>;
   updateSurvey(surveyId: string, input: SurveyDraftInput): Promise<SurveyDetail>;
   publishSurvey(surveyId: string): Promise<SurveyDetail>;

@@ -17,13 +17,13 @@ type DraftQuestion = SurveyDraftInput["questions"][number] & { editorId: string 
 
 const blankQuestion = (position: number): DraftQuestion => ({ editorId: crypto.randomUUID(), prompt: "", required: true, position });
 
-export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
+export function SurveyBuilderScreen({ surveyId, initialDraft }: { surveyId?: string; initialDraft?: SurveyDraftInput }) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [introduction, setIntroduction] = useState("");
-  const [questions, setQuestions] = useState<DraftQuestion[]>([blankQuestion(0)]);
-  const [expiresAt, setExpiresAt] = useState("");
-  const [minResponses, setMinResponses] = useState(2);
+  const [title, setTitle] = useState(initialDraft?.title ?? "");
+  const [introduction, setIntroduction] = useState(initialDraft?.introduction ?? "");
+  const [questions, setQuestions] = useState<DraftQuestion[]>(() => initialDraft?.questions.map(question => ({ ...question, editorId: crypto.randomUUID() })) ?? [blankQuestion(0)]);
+  const [expiresAt, setExpiresAt] = useState(initialDraft?.settings.expiresAt?.slice(0, 10) ?? "");
+  const [minResponses, setMinResponses] = useState(initialDraft?.settings.minReportResponses ?? 2);
   const [loading, setLoading] = useState(Boolean(surveyId));
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
@@ -117,6 +117,7 @@ export function SurveyBuilderScreen({ surveyId }: { surveyId?: string }) {
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
           <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">Step {step} of 2 · {step === 1 ? "Survey details" : "Questions"}</p>
           <h1 ref={headingRef} tabIndex={-1} className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] outline-none sm:text-4xl">{step === 1 ? "Describe your survey" : "Shape your questions"}</h1>
+          {initialDraft && !currentId && <p className="mt-3 text-sm text-[var(--coral-dark)]">Your AI draft is ready. Review the details and questions, then save or publish. It has not been saved yet.</p>}
           {step === 2 && <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Speak your questions naturally, then let AI polish them for clarity.</p>}
         </div>
       </div>

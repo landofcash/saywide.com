@@ -8,6 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildApp } from "../src/app.js";
 import { loadReportSkills } from "../src/agents/skill-catalogue.js";
 import type { AppConfig } from "../src/config.js";
+import { AppError } from "../src/errors.js";
 
 const adminDatabaseUrl = process.env.TEST_DATABASE_ADMIN_URL
   ?? "postgres://saywide:saywide_dev@127.0.0.1:5433/postgres";
@@ -41,6 +42,13 @@ const config: AppConfig = {
 const app = buildApp({
   config,
   pool,
+  surveyDraftGenerator: {
+    async generate(transcript) {
+      if (transcript === "simulate provider failure") throw new Error("provider-secret-must-not-leak");
+      if (transcript === "unclear survey description") throw new AppError(422, "SURVEY_DESCRIPTION_INSUFFICIENT", "Please describe your survey topic.");
+      return { title: "Team meetings", introduction: "Tell us about team meetings.", questions: [{ prompt: "What should improve?", required: true }] };
+    },
+  },
   surveyTextPolisher: {
     async polish(input) {
       if (input.text === "simulate provider failure") throw new Error("provider-secret-must-not-leak");
@@ -130,6 +138,30 @@ afterAll(async () => {
 });
 
 describe("Phase 1 API", () => {
+  it("generates a validated draft without persisting, and protects access and failure details", async () => {
+    const origin = "http://localhost:3000";
+    const guest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+    const cookie = guest.headers["set-cookie"]!.toString().split(";")[0];
+    const headers = { origin, cookie };
+    const url = "/api/organizer/draft-survey";
+    const payload = { transcript: "Ask the team how to improve meetings." };
+    const before = await pool.query("SELECT count(*) FROM survey");
+    expect((await app.inject({ method: "POST", url, headers: { origin }, payload })).statusCode).toBe(401);
+    expect((await app.inject({ method: "POST", url, headers: { ...headers, origin: "https://untrusted.example" }, payload })).statusCode).toBe(403);
+    const result = await app.inject({ method: "POST", url, headers, payload });
+    expect(result.statusCode).toBe(200);
+    expect(result.json()).toEqual({ title: "Team meetings", introduction: "Tell us about team meetings.", questions: [{ prompt: "What should improve?", required: true }] });
+    expect(result.headers["cache-control"]).toContain("no-store");
+    for (const invalid of [{ transcript: " " }, { transcript: "x".repeat(12001) }, { ...payload, publish: true }]) {
+      expect((await app.inject({ method: "POST", url, headers, payload: invalid })).statusCode).toBe(400);
+    }
+    const failure = await app.inject({ method: "POST", url, headers, payload: { transcript: "simulate provider failure" } });
+    expect(failure.statusCode).toBe(503);
+    expect(failure.json().error.code).toBe("SURVEY_GENERATION_UNAVAILABLE");
+    expect(failure.body).not.toContain("provider-secret");
+    expect((await app.inject({ method: "POST", url, headers, payload: { transcript: "unclear survey description" } })).statusCode).toBe(422);
+    expect((await pool.query("SELECT count(*) FROM survey")).rows).toEqual(before.rows);
+  });
   it("creates, edits, and publishes surveys with more than five questions", async () => {
     const origin = "http://localhost:3000";
     const guest = await app.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });

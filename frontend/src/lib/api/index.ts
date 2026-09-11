@@ -6,8 +6,8 @@ export const isMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API === "true";
 export const api = isMockApi ? mockSaywideApi : httpSaywideApi;
 export const apiCapabilities: ApiCapabilities = {
   accounts: isMockApi,
-  goalDrafting: isMockApi,
+  goalDrafting: !isMockApi,
   reports: true,
-  voice: true,
+  voice: !isMockApi,
 };
 export type { ApiCapabilities, SaywideApi } from "./types";

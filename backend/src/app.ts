@@ -15,6 +15,7 @@ import { healthRoutes } from "./routes/health.js";
 import { organizerRoutes } from "./routes/organizer.js";
 import { organizerWritingRoutes } from "./routes/organizer-writing.js";
 import { OpenAiSurveyTextPolisher, type SurveyTextPolisher } from "./services/survey-text-polisher.js";
+import { OpenAiSurveyDraftGenerator, type SurveyDraftGenerator } from "./services/survey-draft-generator.js";
 import { publicRoutes } from "./routes/public.js";
 import { reportRoutes } from "./routes/reports.js";
 import { surveyRoutes } from "./routes/surveys.js";
@@ -32,6 +33,7 @@ export interface BuildAppOptions {
   transcriptionSessionSigner?: TranscriptionSessionSigner;
   reportAnalyzer?: ReportAnalyzer;
   surveyTextPolisher?: SurveyTextPolisher;
+  surveyDraftGenerator?: SurveyDraftGenerator;
 }
 
 export function buildApp(options: BuildAppOptions): FastifyInstance {
@@ -88,7 +90,8 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     scope.register(healthRoutes(service));
     scope.register(organizerRoutes(service, options.config));
     scope.register(organizerWritingRoutes(service, transcriptionSessionSigner,
-      options.surveyTextPolisher ?? new OpenAiSurveyTextPolisher(options.config), options.config));
+      options.surveyTextPolisher ?? new OpenAiSurveyTextPolisher(options.config), options.config,
+      options.surveyDraftGenerator ?? new OpenAiSurveyDraftGenerator(options.config)));
     scope.register(surveyRoutes(service, options.config));
     scope.register(reportRoutes(service, reportService, options.config));
     scope.register(publicRoutes(service, transcriptionSessionSigner, options.config));

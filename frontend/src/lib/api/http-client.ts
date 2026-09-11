@@ -12,6 +12,7 @@ import type {
   SurveyListResponse,
   TranscriptionSessionResponse,
 } from "@saywide/contracts";
+import { generatedSurveyDraftSchema } from "@saywide/contracts";
 
 import {
   completeDraft,
@@ -117,8 +118,11 @@ export const httpSaywideApi: SaywideApi = {
     return request<SurveyDetail>(`/api/surveys/${encodeURIComponent(surveyId)}`);
   },
 
-  async draftSurveyFromGoal() {
-    return unavailable("Goal-based survey drafting");
+  async draftSurveyFromGoal(transcript, signal) {
+    await ensureGuestSession();
+    return generatedSurveyDraftSchema.parse(await request("/api/organizer/draft-survey", {
+      method: "POST", body: JSON.stringify({ transcript }), signal,
+    }));
   },
 
   async createSurvey(input: SurveyDraftInput) {

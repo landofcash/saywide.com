@@ -93,23 +93,8 @@ export const mockSaywideApi: SaywideApi = {
     return structuredClone(findSurvey(readState(), surveyId));
   },
 
-  async draftSurveyFromGoal(goal) {
-    await pause(500);
-    const state = readState();
-    const input: SurveyDraftInput = {
-      title: goal.toLowerCase().includes("event") ? "Event experience reflection" : "Team experience check-in",
-      introduction: "Share your perspective in your own words. Your response is anonymous and will be reviewed as part of a combined report.",
-      questions: [
-        { prompt: "What has been working especially well?", required: true, position: 0 },
-        { prompt: "What has made the experience more difficult than it should be?", required: true, position: 1 },
-        { prompt: "What is one practical change you would make next?", required: true, position: 2 },
-      ],
-      settings: { expiresAt: null, hasAccessCode: false, minReportResponses: 2 },
-    };
-    const survey = makeSurvey(input);
-    state.surveys.unshift(survey);
-    writeState(state);
-    return structuredClone(survey);
+  async draftSurveyFromGoal() {
+    throw new Error("AI survey creation needs the live API. You can build a survey manually in demo mode.");
   },
 
   async createSurvey(input) {

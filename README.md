@@ -10,7 +10,15 @@ text responses backed by PostgreSQL. Live HTTP mode also includes the minimal
 participant voice path: the backend issues a short-lived signed URL and the
 browser streams microphone PCM directly to Amazon Transcribe. The backend runs
 the evidence-backed report workflow through Strands with OpenAI by default;
-agent drafting and accounts remain available in the synthetic frontend demo only.
+the live `/create` page also turns recorded descriptions into editable AI survey
+drafts. Accounts remain available in the synthetic frontend demo only.
+
+On `/create`, tap the microphone to record and tap stop to generate. Transcripts
+stay hidden and in memory; the backend returns validated title, introduction,
+and questions through `POST /api/organizer/draft-survey`. Nothing is persisted
+until Save draft or Publish in the editor. Recording requires the existing
+Transcribe configuration; generation uses the backend `OPENAI_API_KEY` and
+`OPENAI_MODEL`. Demo mode offers manual creation instead of simulated recording.
 
 ## Run locally
 

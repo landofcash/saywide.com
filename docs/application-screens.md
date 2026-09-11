@@ -56,7 +56,7 @@ flowchart LR
 | ID | Screen name | Route | Description | Main functional elements |
 |---|---|---|---|---|
 | M-01 | Marketing Homepage | `/` | Introduce Saywide and direct visitors to their dashboard. | Saywide brand, two Dashboard calls to action, product heading and slogan, three-slide media carousel. |
-| O-01 | Create a Survey | `/create` | Starting point for describing a survey goal by text or voice. | Goal editor, microphone controls, transcript review, generate button, manual-start action, My Surveys link, Sign In link. |
+| O-01 | Create a Survey | `/create` | Centered voice-first starting point for describing a survey. | Large microphone, recording status and duration, stop/cancel/retry, manual-start action, My Surveys link. |
 | O-02 | Survey Builder | `/surveys/new` or `/surveys/{surveyId}/edit` | Create manually or review and edit a persisted survey before publication. | Title and introduction fields, question cards, reorder/add/remove controls, quality warnings, settings, preview, save state, publish button. |
 | O-03 | Publish and Share | `/surveys/{surveyId}/share` | Confirm publication and provide safe participant-sharing tools. | Share URL, copy action, QR code, QR download, participant preview, collection status, dashboard link. |
 | O-04 | My Surveys | `/dashboard` | Show every survey owned by the current guest workspace or registered account. | Survey cards/table, status filters, response counts, report state, New Survey action, guest recovery warning, account menu. |
@@ -75,22 +75,21 @@ flowchart LR
 
 **Functional elements:**
 
-- Saywide logo and concise product statement.
-- Multiline goal field with a useful example rather than placeholder marketing copy.
-- Record, stop, cancel, retry, and recording-duration controls.
-- Live/final transcript area that remains editable before generation.
-- Primary `Create survey` action, enabled when the goal is meaningful.
+- Site header and a centered heading explaining what to describe.
+- Large microphone with record, stop, cancel, retry, and recording-duration controls.
+- Hidden in-memory transcription; no partial or final transcript is displayed or announced.
+- Stopping recording finalizes transcription and automatically generates the survey.
 - Secondary `Start manually` action for organizers who do not want AI-generated questions.
-- Quiet `My surveys` and `Sign in` navigation actions.
-- Short notice that recordings are streamed for immediate transcription and not retained.
+- Quiet `My surveys` navigation action.
 - Loading state that describes survey drafting without exposing model internals.
 
 **Behavior and transitions:**
 
 - The guest workspace is created or restored only when the organizer begins a meaningful action, not merely when the page loads.
-- Text remains available if microphone permission or Amazon Transcribe is unavailable.
-- Generated creation navigates to O-02 with a persisted draft; manual creation opens the `/surveys/new` builder with a client-side blank draft.
-- API interactions: `POST /api/organizer/guest-session`, followed by `POST /api/surveys/draft-from-goal` for generated creation. Manual creation is persisted from O-02 through `POST /api/surveys` once it is valid.
+- Manual creation remains available if microphone permission or transcription is unavailable. Demo mode does not simulate voice or AI creation.
+- Generated creation shows O-02 on the same route, seeded with an unsaved title, participant introduction, and questions. Manual creation opens `/surveys/new` with a blank draft. Both save only on explicit Save draft or Publish.
+- Cancellation and navigation stop capture and ignore late results. Incomplete recordings are not used to generate a survey. AI failures may retry the finalized transcript while the page remains open; re-recording clears it.
+- API interactions: `POST /api/organizer/guest-session`, `POST /api/organizer/transcription-sessions`, and `POST /api/organizer/draft-survey`. The final endpoint accepts a 12–12,000-character transcript and returns a title (up to 160 characters), introduction (up to 2,000), and 1–20 questions (up to 1,000 characters each). It never persists or publishes a survey. O-02 persists through `POST /api/surveys` on explicit save.
 
 ### O-02 — Survey Builder
 

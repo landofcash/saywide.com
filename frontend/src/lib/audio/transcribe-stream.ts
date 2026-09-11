@@ -18,6 +18,7 @@ export interface TranscriptUpdate {
 export type TranscriptionEndReason = "stopped" | "limit" | "cancelled" | "error";
 
 export interface TranscribeStreamOptions {
+  signal?: AbortSignal;
   createSession(): Promise<TranscriptionSessionResponse>;
   onTranscript(update: TranscriptUpdate): void;
   onError(error: Error): void;
@@ -127,11 +128,17 @@ export async function startTranscribeStream(options: TranscribeStreamOptions): P
   const finish = (reason: TranscriptionEndReason) => {
     if (ended) return;
     ended = true;
+    options.signal?.removeEventListener("abort", cancelFromSignal);
     if (recordingTimer) clearTimeout(recordingTimer);
     if (closeTimer) clearTimeout(closeTimer);
     stopAudioCapture();
     if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000);
     options.onEnded(reason);
+  };
+
+  const cancelFromSignal = () => finish("cancelled");
+  const checkCancelled = () => {
+    if (options.signal?.aborted) throw new DOMException("Recording cancelled", "AbortError");
   };
 
   const reportError = (reason: unknown) => {
@@ -164,6 +171,8 @@ export async function startTranscribeStream(options: TranscribeStreamOptions): P
   };
 
   try {
+    checkCancelled();
+    options.signal?.addEventListener("abort", cancelFromSignal, { once: true });
     mediaStream = await navigator.mediaDevices.getUserMedia({
       video: false,
       audio: {
@@ -173,27 +182,40 @@ export async function startTranscribeStream(options: TranscribeStreamOptions): P
         autoGainControl: true,
       },
     });
+    checkCancelled();
     const session = await options.createSession();
+    checkCancelled();
     socket = new WebSocket(session.websocketUrl);
     socket.binaryType = "arraybuffer";
 
     await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Amazon Transcribe did not accept the connection in time.")), SOCKET_OPEN_TIMEOUT_MS);
-      const opened = () => {
+      const cleanup = () => {
         clearTimeout(timeout);
+        options.signal?.removeEventListener("abort", aborted);
+      };
+      const aborted = () => { cleanup(); reject(new DOMException("Recording cancelled", "AbortError")); };
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error("Amazon Transcribe did not accept the connection in time."));
+      }, SOCKET_OPEN_TIMEOUT_MS);
+      const opened = () => {
+        cleanup();
         socket?.removeEventListener("error", failed);
         resolve();
       };
       const failed = () => {
-        clearTimeout(timeout);
+        cleanup();
         socket?.removeEventListener("open", opened);
         reject(new Error("Amazon Transcribe could not open the streaming connection."));
       };
       socket?.addEventListener("open", opened, { once: true });
       socket?.addEventListener("error", failed, { once: true });
+      options.signal?.addEventListener("abort", aborted, { once: true });
     });
+    checkCancelled();
 
     socket.addEventListener("message", (event: MessageEvent<ArrayBuffer>) => {
+      if (ended) return;
       try {
         const message = eventStreamCodec.decode(new Uint8Array(event.data));
         const messageType = message.headers[":message-type"]?.value;
@@ -233,6 +255,7 @@ export async function startTranscribeStream(options: TranscribeStreamOptions): P
 
     audioContext = new AudioContext();
     await audioContext.resume();
+    checkCancelled();
     source = audioContext.createMediaStreamSource(mediaStream);
     processor = audioContext.createScriptProcessor(2_048, 1, 1);
     processor.onaudioprocess = (event) => {
@@ -257,6 +280,7 @@ export async function startTranscribeStream(options: TranscribeStreamOptions): P
       },
     };
   } catch (error) {
+    options.signal?.removeEventListener("abort", cancelFromSignal);
     stopAudioCapture();
     if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000);
     throw errorFromUnknown(error);

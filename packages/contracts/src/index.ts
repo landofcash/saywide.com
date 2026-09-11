@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+export const draftSurveyFromGoalInputSchema = z.object({
+  transcript: z.string().trim().min(12).max(12000),
+}).strict();
+
+export const generatedSurveyDraftSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  introduction: z.string().trim().max(2000),
+  questions: z.array(z.object({
+    prompt: z.string().trim().min(1).max(1000),
+    required: z.boolean(),
+  }).strict()).min(1).max(20),
+}).strict();
+export type GeneratedSurveyDraft = z.infer<typeof generatedSurveyDraftSchema>;
+
 export const polishSurveyTextInputSchema = z.object({
   field: z.enum(["title", "introduction", "question"]),
   text: z.string().trim().min(1).max(2000),
