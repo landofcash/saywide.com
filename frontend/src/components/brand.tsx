@@ -24,11 +24,11 @@ const logoOptions = {
 } as const;
 
 export function Brand({ compact = false, className }: { compact?: boolean; className?: string }) {
-  const [logoVariant, setLogoVariant] = useState<LogoVariant>("2");
+  const [logoVariant, setLogoVariant] = useState<LogoVariant>("1");
 
   useEffect(() => {
     const updateLogoVariant = () => {
-      setLogoVariant(new URLSearchParams(window.location.search).get("logo") === "1" ? "1" : "2");
+      setLogoVariant(new URLSearchParams(window.location.search).get("logo") === "2" ? "2" : "1");
     };
 
     updateLogoVariant();
