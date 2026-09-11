@@ -71,7 +71,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           <section className="mt-5 border-t border-[var(--line)] pt-5" aria-labelledby="custom-report-heading">
             <h2 id="custom-report-heading" className="text-xl font-bold">Create your own request</h2>
             <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
-            <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} voiceButtonClassName="border-dashed text-[var(--muted)] hover:text-[var(--ink)]" onBusyChange={setWritingBusy} onChange={setInstruction} />
+            <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
             <Textarea id="report-instruction" rows={5} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
           </section>
           {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}

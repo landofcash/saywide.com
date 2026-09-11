@@ -12,12 +12,11 @@ interface Props {
   fieldLabel?: string;
   value: string;
   disabled: boolean;
-  voiceButtonClassName?: string;
   onChange(value: string): void;
   onBusyChange(busy: boolean): void;
 }
 
-export function SurveyWritingControls({ field, fieldLabel, value, disabled, voiceButtonClassName, onChange, onBusyChange }: Props) {
+export function SurveyWritingControls({ field, fieldLabel, value, disabled, onChange, onBusyChange }: Props) {
   const [phase, setPhase] = useState<"idle" | "starting" | "recording" | "finishing" | "polishing">("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -123,7 +122,7 @@ export function SurveyWritingControls({ field, fieldLabel, value, disabled, voic
             <Square className="size-4" /> Stop recording
           </Button>
         ) : (
-          <Button type="button" variant="secondary" size="sm" className={voiceButtonClassName} disabled={disabled || phase !== "idle" || value.length >= maxLength} onClick={() => void record()} aria-label={`Dictate ${label}`}>
+          <Button type="button" variant="secondary" size="sm" disabled={disabled || phase !== "idle" || value.length >= maxLength} onClick={() => void record()} aria-label={`Dictate ${label}`}>
             <Mic className="size-4" /> {phase === "starting" ? "Connecting…" : phase === "finishing" ? "Finishing…" : "Use voice"}
           </Button>
         )}
