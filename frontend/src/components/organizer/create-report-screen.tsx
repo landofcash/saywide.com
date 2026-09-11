@@ -1,7 +1,7 @@
 "use client";
 
 import type { SurveyDetail } from "@saywide/contracts";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileSearch, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileSearch } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/form-controls";
 import { api } from "@/lib/api";
-import { formatDateTime, pluralize } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 
 const examples = [
   { label: "Overall picture", title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
@@ -53,15 +53,10 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
     <OrganizerShell>
       <Link href={`/surveys/${surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link>
       <div className="mx-auto mt-5 max-w-4xl">
-        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">Say what you want to explore, or choose a suggestion to get started. Saywide will find the patterns, show what people said, and create your report.</p></div>
+        <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">Saywide will find the patterns, show what people said, and create your report.</p></div>
         <Card className="mt-8 p-5 sm:p-8">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[var(--line)] pb-5 text-sm text-[var(--muted)]">
-            <span className="font-semibold text-[var(--ink)]">Report for: {survey.title}</span>
-            <span>{pluralize(eligible, "submitted response")}</span>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-900"><ShieldCheck className="size-4" /> Minimum {survey.settings.minReportResponses} responses</div>
-          </div>
-          <section className="mt-7" aria-labelledby="suggested-reports-heading">
-            <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions</h2>
+          <section aria-labelledby="suggested-reports-heading">
+            <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions to get started</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {examples.map((example) => (
               <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="min-h-11 rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)] aria-pressed:text-[var(--coral-dark)]">
@@ -71,7 +66,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           </div>
           </section>
           <section className="mt-8 border-t border-[var(--line)] pt-7" aria-labelledby="custom-report-heading">
-            <h2 id="custom-report-heading" className="text-xl font-bold">Create your own</h2>
+            <h2 id="custom-report-heading" className="text-xl font-bold">Create your own request</h2>
             <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
             <Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
             <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
