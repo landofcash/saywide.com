@@ -46,16 +46,18 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
   if (!survey) return <OrganizerShell><div className="h-96 animate-pulse rounded-xl bg-white" /></OrganizerShell>;
   const eligible = survey.submittedResponseCount;
   const allowed = eligible >= survey.settings.minReportResponses;
+  const responsesNeeded = survey.settings.minReportResponses - eligible;
 
   return (
     <OrganizerShell>
       <Link href={`/surveys/${surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link>
       <div className="mx-auto mt-5 max-w-4xl">
         <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Turn responses into insights</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What would you like to understand?</h1><p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">Agent will find the patterns, show what people said, and create the report.</p></div>
-        <Card className="mt-8 p-5 sm:p-8">
+        <Card className="mt-8 border-transparent p-5 shadow-none sm:p-8">
           <section aria-labelledby="suggested-reports-heading">
             <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions to get started</h2>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <p className="mt-1 text-sm text-[var(--muted)]">Start with a common view.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             {examples.map((example) => {
               const Icon = example.icon;
               return (
@@ -69,12 +71,11 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           <section className="mt-5 border-t border-[var(--line)] pt-5" aria-labelledby="custom-report-heading">
             <h2 id="custom-report-heading" className="text-xl font-bold">Create your own request</h2>
             <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
-            <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
-            <Textarea id="report-instruction" rows={7} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
+            <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} voiceButtonClassName="border-dashed text-[var(--muted)] hover:text-[var(--ink)]" onBusyChange={setWritingBusy} onChange={setInstruction} />
+            <Textarea id="report-instruction" rows={5} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
           </section>
           {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-          {!allowed && <p role="alert" className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Collect {survey.settings.minReportResponses - eligible} more responses before creating a report.</p>}
-          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating || writingBusy} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
+          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating || writingBusy} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : !allowed ? <>Need {responsesNeeded} more response{responsesNeeded === 1 ? "" : "s"}</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
         </Card>
       </div>
     </OrganizerShell>
