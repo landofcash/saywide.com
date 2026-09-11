@@ -10,3 +10,5 @@ dist/
 .playwright-cli/
 output/playwright/
 
+/frontend/.idea
+/frontend/.junie
