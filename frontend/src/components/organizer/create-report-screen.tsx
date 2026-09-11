@@ -66,7 +66,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             })}
           </div>
           </section>
-          <section className="mt-8 border-t border-[var(--line)] pt-7" aria-labelledby="custom-report-heading">
+          <section className="mt-5 border-t border-[var(--line)] pt-5" aria-labelledby="custom-report-heading">
             <h2 id="custom-report-heading" className="text-xl font-bold">Create your own request</h2>
             <Label htmlFor="report-instruction" className="mt-2 text-sm font-normal text-[var(--muted)]">Tell Saywide what to look for.</Label>
             <SurveyWritingControls field="report-instruction" value={instruction} disabled={writingBusy || creating} onBusyChange={setWritingBusy} onChange={setInstruction} />
