@@ -35,7 +35,6 @@ export function DashboardScreen() {
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Your workspace</p>
           <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">My surveys</h1>
-          <p className="mt-3 text-[var(--muted)]">Follow collection, share a link, or turn responses into a report.</p>
         </div>
         <Button asChild variant="accent" size="lg"><Link href="/create"><Plus className="size-5" /> New survey</Link></Button>
       </div>

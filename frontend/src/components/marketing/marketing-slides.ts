@@ -15,6 +15,10 @@ export const marketingSlides: MarketingSlide[] = [
     label: "Placeholder one",
     headline: "First story headline",
     description: "Temporary supporting copy for the first Saywide story.",
+    image: {
+      src: "/images/first-story.png",
+      alt: "People gathered around a table with speech bubbles representing a shared conversation",
+    },
   },
   {
     number: "02",
