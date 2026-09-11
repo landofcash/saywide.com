@@ -21,6 +21,7 @@ const config: AppConfig = {
   nodeEnv: "test",
   host: "127.0.0.1",
   port: 4000,
+  trustProxy: false,
   databaseUrl: testDatabaseUrl.toString(),
   publicAppUrl: "http://localhost:3000",
   frontendOrigins: ["http://localhost:3000"],
@@ -194,6 +195,61 @@ describe("Phase 1 API", () => {
     expect(failure.body).not.toContain("provider-secret");
     expect(failure.json().error.code).toBe("POLISH_UNAVAILABLE");
     expect((await pool.query("SELECT count(*) FROM survey")).rows).toEqual(before.rows);
+  });
+
+  it("separates organizer writing limits by forwarded client IP when the Railway proxy is trusted", async () => {
+    const proxiedApp = buildApp({
+      config: { ...config, trustProxy: true },
+      pool,
+      surveyTextPolisher: {
+        async polish() { return { text: "Team feedback" }; },
+      },
+    });
+    try {
+      await proxiedApp.ready();
+      const origin = "http://localhost:3000";
+      const guest = await proxiedApp.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+      const cookie = guest.headers["set-cookie"]!.toString().split(";")[0];
+      const polish = (forwardedFor: string) => proxiedApp.inject({
+        method: "POST",
+        url: "/api/organizer/polish-text",
+        headers: { origin, cookie, "x-forwarded-for": forwardedFor },
+        payload: { field: "title", text: "Team feedback" },
+      });
+
+      for (let attempt = 0; attempt < 20; attempt += 1) expect((await polish("198.51.100.10")).statusCode).toBe(200);
+      expect((await polish("198.51.100.10")).statusCode).toBe(429);
+      expect((await polish("198.51.100.11")).statusCode).toBe(200);
+    } finally {
+      await proxiedApp.close();
+    }
+  });
+
+  it("ignores forwarded client IPs when proxy trust is disabled", async () => {
+    const directApp = buildApp({
+      config,
+      pool,
+      surveyTextPolisher: {
+        async polish() { return { text: "Team feedback" }; },
+      },
+    });
+    try {
+      await directApp.ready();
+      const origin = "http://localhost:3000";
+      const guest = await directApp.inject({ method: "POST", url: "/api/organizer/guest-session", headers: { origin } });
+      const cookie = guest.headers["set-cookie"]!.toString().split(";")[0];
+      const polish = (forwardedFor: string) => directApp.inject({
+        method: "POST",
+        url: "/api/organizer/polish-text",
+        headers: { origin, cookie, "x-forwarded-for": forwardedFor },
+        payload: { field: "title", text: "Team feedback" },
+      });
+
+      for (let attempt = 0; attempt < 20; attempt += 1) expect((await polish("198.51.100.10")).statusCode).toBe(200);
+      expect((await polish("198.51.100.11")).statusCode).toBe(429);
+    } finally {
+      await directApp.close();
+    }
   });
 
   it("permits the browser preflight needed for text autosave", async () => {

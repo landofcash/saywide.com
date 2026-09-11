@@ -4,6 +4,8 @@ const environmentSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   HOST: z.string().default("0.0.0.0"),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  // Avoid z.coerce.boolean(): the string "false" would otherwise become true.
+  TRUST_PROXY: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   DATABASE_URL: z.string().url(),
   PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   FRONTEND_ORIGINS: z.string().default("http://localhost:3000"),
@@ -29,6 +31,8 @@ export interface AppConfig {
   nodeEnv: "development" | "test" | "production";
   host: string;
   port: number;
+  /** Whether the deployment's direct peer is a trusted reverse proxy. */
+  trustProxy: boolean;
   databaseUrl: string;
   publicAppUrl: string;
   frontendOrigins: string[];
@@ -53,6 +57,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     nodeEnv: parsed.NODE_ENV,
     host: parsed.HOST,
     port: parsed.PORT,
+    trustProxy: parsed.TRUST_PROXY,
     databaseUrl: parsed.DATABASE_URL,
     publicAppUrl: parsed.PUBLIC_APP_URL.replace(/\/$/, ""),
     frontendOrigins: parsed.FRONTEND_ORIGINS.split(",").map((origin) => origin.trim().replace(/\/$/, "")).filter(Boolean),

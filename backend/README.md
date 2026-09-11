@@ -40,6 +40,11 @@ corepack pnpm dev:backend
 The default development database is a dedicated PostgreSQL 18 container at
 `127.0.0.1:5433`; it does not reuse another local PostgreSQL service. Replace
 the development-only secret and database credentials before any deployment.
+`TRUST_PROXY` defaults to `false`, so forwarded headers from direct clients are
+ignored. Set `TRUST_PROXY=true` on the Railway backend service: Railway is the
+trusted public ingress and this makes IP-based limits use the original client
+address. Do not enable it for a directly exposed server unless its proxy chain
+is explicitly trusted.
 For local voice testing, authenticate the AWS CLI profile configured by
 `AWS_PROFILE`. In Railway, omit `AWS_PROFILE` and provide runtime credentials
 with `transcribe:StartStreamTranscriptionWebSocket` permission for `AWS_REGION`.

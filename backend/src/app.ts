@@ -37,6 +37,8 @@ export interface BuildAppOptions {
 export function buildApp(options: BuildAppOptions): FastifyInstance {
   const app = Fastify({
     bodyLimit: 64 * 1024,
+    // Only enable this where the deployment is reached through a trusted proxy.
+    trustProxy: options.config.trustProxy,
     logger: {
       level: options.config.logLevel,
       redact: {
