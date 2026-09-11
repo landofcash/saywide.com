@@ -28,6 +28,9 @@ corepack pnpm dev
 Set `NEXT_PUBLIC_USE_MOCK_API=false` in `frontend/.env.local` to use the live
 Fastify API. Open <http://localhost:3000>; the API listens on
 <http://localhost:4000> and its PostgreSQL container binds to local port `5433`.
+The root route is the marketing homepage. Use <http://localhost:3000/create>
+for AI-assisted survey creation, or <http://localhost:3000/surveys/new> for the
+manual survey builder.
 For voice testing, log in with the AWS CLI profile named by `AWS_PROFILE` in
 `backend/.env` (the example uses `saywide.com`). The identity needs only
 `transcribe:StartStreamTranscriptionWebSocket` in the configured `AWS_REGION`.

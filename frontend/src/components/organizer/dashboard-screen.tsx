@@ -37,7 +37,7 @@ export function DashboardScreen() {
           <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">My surveys</h1>
           <p className="mt-3 text-[var(--muted)]">Follow collection, share a link, or turn responses into a report.</p>
         </div>
-        <Button asChild variant="accent" size="lg"><Link href="/"><Plus className="size-5" /> New survey</Link></Button>
+        <Button asChild variant="accent" size="lg"><Link href="/create"><Plus className="size-5" /> New survey</Link></Button>
       </div>
 
       {apiCapabilities.accounts && <Card className="mt-8 flex flex-col gap-4 border-l-4 border-l-[var(--coral)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">

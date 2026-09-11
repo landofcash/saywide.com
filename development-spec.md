@@ -111,15 +111,16 @@ The complete organizer and participant screen inventory is maintained in [Applic
 
 ### 7.1 Create
 
-1. Organizer lands directly on survey creation without a login wall.
-2. When creation begins, the server creates or restores a browser-bound guest organizer workspace.
-3. Organizer enters or records a survey goal.
-4. The app transcribes voice input when applicable.
-5. A Strands creation agent proposes one or more open-ended questions and a short introduction.
-6. Organizer edits the title, introduction, questions, anonymity statement, and collection settings.
-7. Organizer publishes the survey.
-8. The app displays a participant share link and QR code that contain no organizer credential.
-9. The organizer dashboard offers account creation as an optional way to protect and recover the surveys from another device.
+1. A visitor lands on the marketing homepage at `/` and opens the dashboard from either call to action.
+2. The dashboard's `New survey` action opens AI-assisted creation at `/create`; the secondary manual action opens `/surveys/new`.
+3. When creation begins, the server creates or restores a browser-bound guest organizer workspace.
+4. Organizer enters or records a survey goal.
+5. The app transcribes voice input when applicable.
+6. A Strands creation agent proposes one or more open-ended questions and a short introduction.
+7. Organizer edits the title, introduction, questions, anonymity statement, and collection settings.
+8. Organizer publishes the survey.
+9. The app displays a participant share link and QR code that contain no organizer credential.
+10. The organizer dashboard offers account creation as an optional way to protect and recover the surveys from another device.
 
 Example organizer request:
 

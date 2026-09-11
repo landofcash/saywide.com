@@ -10,7 +10,8 @@ The interface is mobile-first for participants and responsive for organizers. Vo
 
 ## 2. Experience principles
 
-- A first-time organizer lands on survey creation, not an authentication gate.
+- A first-time visitor lands on the marketing homepage and can open the dashboard without an authentication gate.
+- Survey creation remains directly available at `/create`, with manual creation at `/surveys/new`.
 - The shortest successful organizer path is: describe goal → review survey → publish → share.
 - Participant access begins from the public link or QR code and never requires an account.
 - One primary action is visually dominant on each screen.
@@ -25,10 +26,11 @@ The interface is mobile-first for participants and responsive for organizers. Vo
 
 ```mermaid
 flowchart LR
+    M1[Marketing Homepage] --> O4[My Surveys]
     O1[Create a Survey] --> O2[Survey Builder]
     O2 --> O3[Publish and Share]
     O3 --> O5[Survey Overview]
-    O4[My Surveys] --> O1
+    O4 --> O1
     O4 --> O5
     O5 --> O3
     O5 --> O6[Create Report]
@@ -53,7 +55,8 @@ flowchart LR
 
 | ID | Screen name | Route | Description | Main functional elements |
 |---|---|---|---|---|
-| O-01 | Create a Survey | `/` | Immediate starting point for describing a survey goal by text or voice. | Goal editor, microphone controls, transcript review, generate button, manual-start action, My Surveys link, Sign In link. |
+| M-01 | Marketing Homepage | `/` | Introduce Saywide and direct visitors to their dashboard. | Saywide brand, two Dashboard calls to action, product heading and slogan, three-slide media carousel. |
+| O-01 | Create a Survey | `/create` | Starting point for describing a survey goal by text or voice. | Goal editor, microphone controls, transcript review, generate button, manual-start action, My Surveys link, Sign In link. |
 | O-02 | Survey Builder | `/surveys/new` or `/surveys/{surveyId}/edit` | Create manually or review and edit a persisted survey before publication. | Title and introduction fields, question cards, reorder/add/remove controls, quality warnings, settings, preview, save state, publish button. |
 | O-03 | Publish and Share | `/surveys/{surveyId}/share` | Confirm publication and provide safe participant-sharing tools. | Share URL, copy action, QR code, QR download, participant preview, collection status, dashboard link. |
 | O-04 | My Surveys | `/dashboard` | Show every survey owned by the current guest workspace or registered account. | Survey cards/table, status filters, response counts, report state, New Survey action, guest recovery warning, account menu. |
@@ -68,7 +71,7 @@ flowchart LR
 
 ### O-01 — Create a Survey
 
-**Description:** The landing screen and fastest entry into the product. It explains the outcome in one sentence, then lets the organizer state what they want to learn. No account decision interrupts this task.
+**Description:** The AI-assisted creation screen and fastest way to draft a survey. It explains the outcome in one sentence, then lets the organizer state what they want to learn. No account decision interrupts this task.
 
 **Functional elements:**
 

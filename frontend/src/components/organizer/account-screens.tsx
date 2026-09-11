@@ -14,7 +14,7 @@ import { api } from "@/lib/api";
 function AccountFrame({ eyebrow, title, description, children }: { eyebrow: string; title: string; description: string; children: React.ReactNode }) {
   return (
     <div className="min-h-screen px-5 py-7 sm:py-12">
-      <div className="mx-auto max-w-5xl"><Brand /><div className="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center"><section><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">{eyebrow}</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{title}</h1><p className="mt-5 max-w-md text-lg leading-8 text-[var(--muted)]">{description}</p><Link href="/" className="mt-7 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Back to survey creation</Link></section>{children}</div></div>
+      <div className="mx-auto max-w-5xl"><Brand /><div className="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center"><section><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">{eyebrow}</p><h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{title}</h1><p className="mt-5 max-w-md text-lg leading-8 text-[var(--muted)]">{description}</p><Link href="/create" className="mt-7 inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Back to survey creation</Link></section>{children}</div></div>
     </div>
   );
 }
