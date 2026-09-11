@@ -50,7 +50,7 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
         <span className="mx-auto grid size-14 place-items-center rounded-lg border border-emerald-200 bg-[var(--mint-soft)] text-emerald-800"><Check className="size-7" strokeWidth={2.5} /></span>
         <Badge tone="open" className="mt-5">Survey is open</Badge>
         <h1 className="font-display mx-auto mt-4 max-w-3xl text-3xl font-bold tracking-[-0.035em] sm:text-4xl">Ready to hear from your group</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Share this participant-only link. It contains no organizer credentials and asks for no participant account.</p>
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-[var(--muted)]">Share the link or QR code with participants. No account is needed to respond.</p>
 
         <Card className="mt-9 grid gap-8 p-5 text-left sm:p-8 md:grid-cols-[1fr_260px] md:items-center">
           <div>
