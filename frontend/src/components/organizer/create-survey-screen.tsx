@@ -73,9 +73,18 @@ export function CreateSurveyScreen() {
           <h1 className="font-display max-w-[13ch] text-[clamp(2.25rem,4vw,3.5rem)] font-bold leading-[1.06] tracking-[-0.035em]">
             Hear what everyone has to say
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted)]">
-            Create a survey simply by speaking your questions, and let AI refine them when needed. Participants answer freely by voice, and Saywide transforms every response into useful insights.
-          </p>
+          <div className="mt-6 max-w-xl space-y-5">
+            {[
+              { title: "Create naturally", description: "Speak your questions and let AI refine them when needed." },
+              { title: "Hear every voice", description: "Participants answer freely by voice." },
+              { title: "Discover useful insights", description: "Saywide transforms responses into useful insights." },
+            ].map(({ title, description }) => (
+              <div key={title}>
+                <h2 className="text-lg font-semibold leading-7">{title}</h2>
+                <p className="mt-1 text-base leading-7 text-[var(--muted)]">{description}</p>
+              </div>
+            ))}
+          </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
             {[
               { icon: Mic, label: "Voice-first surveys" },
