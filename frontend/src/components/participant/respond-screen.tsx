@@ -1,7 +1,7 @@
 "use client";
 
 import type { ParticipantAnswers, PublicSurvey } from "@saywide/contracts";
-import { ArrowLeft, ArrowRight, AudioLines, Keyboard, Mic, RotateCcw, Square } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mic, RotateCcw, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -173,14 +173,14 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
       ? "Finishing transcript..."
       : recordingState === "recording"
         ? `Listening... ${Math.floor(recordingSeconds / 60)}:${String(recordingSeconds % 60).padStart(2, "0")}`
-        : "Prefer to speak?";
+        : "";
 
   return (
     <ParticipantShell>
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm font-bold">Question {index + 1} of {survey.questions.length}</p>
         <p className="text-xs font-semibold text-[var(--muted)]" aria-live="polite">
-          {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved on this device" : "Draft stays on this device"}
+          {saveState === "saving" ? "Saving..." : saveState === "saved" ? "Saved on this device" : ""}
         </p>
       </div>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--canvas)]" role="progressbar" aria-valuenow={index + 1} aria-valuemin={1} aria-valuemax={survey.questions.length}>
@@ -189,11 +189,25 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
       <Card className="mt-7 p-5 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--coral-dark)]">{question.required ? "Answer required" : "Optional"}</p>
-            <h1 className="font-display mt-3 text-3xl font-bold leading-tight tracking-[-0.025em]">{question.prompt}</h1>
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-[-0.025em]">{question.prompt}</h1>
           </div>
           <span className="hidden size-11 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--canvas)] sm:grid">{index + 1}</span>
         </div>
+        {apiCapabilities.voice && (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {recordingActive ? (
+              <>
+                <p className="text-sm font-bold" role="status">{recordingLabel}</p>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={cancelRecording} disabled={recordingState === "stopping"}><RotateCcw className="size-4" /> Cancel</Button>
+                  <Button variant="accent" size="sm" onClick={stopRecording} disabled={recordingState !== "recording"}><Square className="size-3 fill-current" /> Stop</Button>
+                </div>
+              </>
+            ) : (
+              <Button variant="secondary" size="sm" onClick={() => void startRecording()}><Mic className="size-4" /> Answer by voice</Button>
+            )}
+          </div>
+        )}
         <Textarea
           aria-label="Your answer"
           rows={9}
@@ -206,27 +220,6 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
           placeholder="Write what comes to mind. You can edit this before submitting."
           className="mt-7 min-h-56 text-base leading-7"
         />
-        {apiCapabilities.voice && (
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <span className={`grid size-10 place-items-center rounded-lg border border-[var(--line)] ${recordingActive ? "bg-[var(--coral)] text-white" : "bg-white"}`}>
-                {recordingActive ? <AudioLines className="size-5 animate-pulse" /> : <Keyboard className="size-5" />}
-              </span>
-              <div>
-                <p className="text-sm font-bold">{recordingLabel}</p>
-                <p className="text-xs text-[var(--muted)]">{recordingActive ? "The transcript will stay editable after you stop." : "Audio is transcribed live and not stored."}</p>
-              </div>
-            </div>
-            {recordingActive ? (
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={cancelRecording} disabled={recordingState === "stopping"}><RotateCcw className="size-4" /> Cancel</Button>
-                <Button variant="accent" size="sm" onClick={stopRecording} disabled={recordingState !== "recording"}><Square className="size-3 fill-current" /> Stop</Button>
-              </div>
-            ) : (
-              <Button variant="secondary" size="sm" onClick={() => void startRecording()}><Mic className="size-4" /> Answer by voice</Button>
-            )}
-          </div>
-        )}
         <p className="mt-4 min-h-5 text-sm text-red-700" role="alert">{error}</p>
       </Card>
       <p className="mb-20 mt-5 text-center text-xs leading-5 text-[var(--muted)] sm:mb-0">Only the text you approve on the review screen will be submitted.</p>
