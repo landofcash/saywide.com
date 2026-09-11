@@ -76,7 +76,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             <Textarea id="report-instruction" rows={5} maxLength={2000} readOnly={writingBusy || creating} value={instruction} onChange={(event) => setInstruction(event.target.value)} placeholder={"Find unexpected insights,\ncompare positive and negative feedback,\nsummarize each question."} className="mt-4 text-base leading-7" />
           </section>
           {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating || writingBusy} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : !allowed ? <>{responsesNeeded} more response{responsesNeeded === 1 ? "" : "s"} needed to create a report</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
+          <Button variant="accent" size="lg" className="mt-7 w-full" disabled={!allowed || instruction.trim().length < 12 || creating || writingBusy} onClick={create}>{creating ? <><FileSearch className="size-5 animate-pulse" /> Freezing snapshot…</> : !allowed ? <>Need {responsesNeeded} more response{responsesNeeded === 1 ? "" : "s"}</> : <><CheckCircle2 className="size-5" /> Generate report <ArrowRight className="size-5" /></>}</Button>
         </Card>
       </div>
     </OrganizerShell>
