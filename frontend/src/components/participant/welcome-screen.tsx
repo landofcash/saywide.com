@@ -56,12 +56,10 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
       <Card className="mt-6 p-5 sm:p-7">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time</p>
-            <p className="mt-2 text-lg font-bold">{survey.estimatedMinutes}′</p>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time {survey.estimatedMinutes}′</p>
           </div>
           <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions</p>
-            <p className="mt-2 text-lg font-bold">{survey.questions.length}</p>
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions {survey.questions.length}</p>
           </div>
         </div>
         {survey.requiresAccessCode && <div className="mt-6"><Label htmlFor="access-code">Access code</Label><Input id="access-code" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="one-time-code" /></div>}
