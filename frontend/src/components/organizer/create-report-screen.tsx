@@ -56,7 +56,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
         <Card className="mt-8 border-transparent p-5 shadow-none sm:p-8">
           <section aria-labelledby="suggested-reports-heading">
             <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions to get started</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">Start with a common view.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Choose a focus.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {examples.map((example) => {
               const Icon = example.icon;
