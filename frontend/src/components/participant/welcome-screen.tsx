@@ -11,7 +11,6 @@ import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/form-controls";
 import { api, apiCapabilities } from "@/lib/api";
 import { hasSubmittedFromBrowser, saveParticipantSession } from "@/lib/participant-state";
-import { pluralize } from "@/lib/utils";
 
 export function WelcomeScreen({ publicToken }: { publicToken: string }) {
   const router = useRouter();
@@ -55,7 +54,16 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
     <ParticipantShell>
       <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">You’re invited to take part in a survey</p><h1 className="font-display mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{survey.title}</h1><p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">{survey.introduction}</p></div>
       <Card className="mt-6 p-5 sm:p-7">
-        <div className="grid grid-cols-2 gap-3"><div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time</p><p className="mt-2 text-lg font-bold">About {survey.estimatedMinutes} min</p></div><div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions</p><p className="mt-2 text-lg font-bold">{pluralize(survey.questions.length, "question")}</p></div></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time</p>
+            <p className="mt-2 text-lg font-bold">{survey.estimatedMinutes}′</p>
+          </div>
+          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions</p>
+            <p className="mt-2 text-lg font-bold">{survey.questions.length}</p>
+          </div>
+        </div>
         {survey.requiresAccessCode && <div className="mt-6"><Label htmlFor="access-code">Access code</Label><Input id="access-code" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="one-time-code" /></div>}
         <p className="mt-4 text-xs leading-5 text-[var(--muted)]">By starting, you agree to submit your reviewed text for this survey&apos;s stated purpose.</p>
         <Button variant="accent" size="lg" className="mt-5 w-full" onClick={start} disabled={starting || (survey.requiresAccessCode && !accessCode)}>{starting ? "Starting…" : <>Start survey <ArrowRight className="size-5" /></>}</Button>
