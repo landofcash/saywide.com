@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, AudioLines, LayoutDashboard, LogIn, Menu, Mic, PenLine, Sparkles, Square, X } from "lucide-react";
+import { ArrowRight, AudioLines, LayoutDashboard, LogIn, Menu, Mic, PenLine, Sparkles, Square, UserRoundCheck, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -77,8 +77,12 @@ export function CreateSurveyScreen() {
             Create a survey simply by speaking your questions, and let AI refine them when needed. Participants answer freely by voice, and Saywide transforms every response into useful insights.
           </p>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[var(--muted)]">
-            {[["🎙️", "Voice-first surveys"], ["🚀", "No sign-up required"], ["✨", "AI-generated insights"]].map(([emoji, item]) => (
-              <span key={item} className="flex items-center gap-2"><span aria-hidden="true">{emoji}</span> {item}</span>
+            {[
+              { icon: Mic, label: "Voice-first surveys" },
+              { icon: UserRoundCheck, label: "No sign-up required" },
+              { icon: Sparkles, label: "AI-generated insights" },
+            ].map(({ icon: Icon, label }) => (
+              <span key={label} className="flex items-center gap-2"><Icon className="size-4 shrink-0" aria-hidden="true" /> {label}</span>
             ))}
           </div>
         </section>
