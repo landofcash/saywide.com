@@ -61,7 +61,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             {examples.map((example) => {
               const Icon = example.icon;
               return (
-                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)] ${example.label === "Common themes" ? "col-start-1 row-start-2" : example.label === "Next steps" ? "col-start-2 row-start-1" : ""}`}>
+                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className={`inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)] ${example.label === "Common themes" ? "col-start-1 row-start-2" : example.label === "Next steps" ? "col-start-2 row-start-1" : ""}`}>
                   <Icon className="size-4" /> {example.label}
                 </button>
               );
