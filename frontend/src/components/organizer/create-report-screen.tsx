@@ -57,11 +57,11 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
           <section aria-labelledby="suggested-reports-heading">
             <h2 id="suggested-reports-heading" className="text-xl font-bold">Suggestions to get started</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">Choose a focus.</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 grid grid-cols-2 grid-rows-2 gap-2 sm:flex sm:flex-wrap">
             {examples.map((example) => {
               const Icon = example.icon;
               return (
-                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)]">
+                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className={`inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)] ${example.label === "Common themes" ? "col-start-1 row-start-2" : example.label === "Next steps" ? "col-start-2 row-start-1" : ""}`}>
                   <Icon className="size-4" /> {example.label}
                 </button>
               );
