@@ -1,7 +1,7 @@
 "use client";
 
 import type { SurveyDetail } from "@saywide/contracts";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileSearch } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, ArrowRight, CheckCircle2, FileSearch } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ import { api } from "@/lib/api";
 const examples = [
   { icon: FileSearch, label: "Overall picture", title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
   { icon: CheckCircle2, label: "Common themes", title: "Show what came up most often", description: "Find the most frequently mentioned themes, concerns, and suggestions." },
+  { icon: ArrowLeftRight, label: "Compare views", title: "Compare views", description: "See where people agree or differ." },
   { icon: ArrowRight, label: "Next steps", title: "Suggest practical next steps", description: "Turn the responses into useful recommendations." },
 ];
 
@@ -61,7 +62,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             {examples.map((example) => {
               const Icon = example.icon;
               return (
-                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className={`inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)] ${example.label === "Common themes" ? "col-start-1 row-start-2" : example.label === "Next steps" ? "col-start-2 row-start-1" : ""}`}>
+                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className={`inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)] ${example.label === "Common themes" ? "col-start-1 row-start-2" : example.label === "Compare views" ? "col-start-2 row-start-1" : example.label === "Next steps" ? "col-start-2 row-start-2" : ""}`}>
                   <Icon className="size-4" /> {example.label}
                 </button>
               );
