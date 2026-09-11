@@ -59,7 +59,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
             {examples.map((example) => {
               const Icon = example.icon;
               return (
-                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-medium text-[var(--muted)] disabled:cursor-not-allowed disabled:opacity-45 hover:border-[var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:border-[var(--coral)] aria-pressed:bg-[var(--mint-soft)] aria-pressed:text-[var(--coral-dark)]">
+                <button key={example.title} type="button" disabled={writingBusy || creating} onClick={() => setInstruction(presetInstruction(example))} aria-pressed={instruction === presetInstruction(example)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--coral-dark)] bg-[var(--coral)] px-3 py-1.5 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45 hover:bg-[var(--coral-dark)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] aria-pressed:bg-[var(--coral-dark)]">
                   <Icon className="size-4" /> {example.label}
                 </button>
               );
