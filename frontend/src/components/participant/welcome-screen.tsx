@@ -54,11 +54,11 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
     <ParticipantShell>
       <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">You’re invited to take part in a survey</p><h1 className="font-display mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{survey.title}</h1><p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">{survey.introduction}</p></div>
       <Card className="mt-6 p-5 sm:p-7">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
+        <div className="flex flex-wrap justify-center gap-3">
+          <div className="w-36 rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-4" /> Time {survey.estimatedMinutes}′</p>
           </div>
-          <div className="rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
+          <div className="w-36 rounded-lg border border-[var(--line)] bg-[var(--canvas)] p-4">
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-4" /> Questions {survey.questions.length}</p>
           </div>
         </div>
