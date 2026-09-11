@@ -81,7 +81,7 @@ export function CreateSurveyScreen() {
             ].map(({ title, description }) => (
               <div key={title}>
                 <h2 className="text-lg font-semibold leading-7">{title}</h2>
-                <p className="mt-1 text-base leading-7 text-[var(--muted)]">{description}</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
               </div>
             ))}
           </div>
