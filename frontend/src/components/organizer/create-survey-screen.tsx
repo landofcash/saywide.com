@@ -1,11 +1,11 @@
 "use client";
 
 import type { SurveyDraftInput } from "@saywide/contracts";
-import { ClipboardList, LoaderCircle, Mic, PenLine, RotateCcw, Square } from "lucide-react";
+import { LoaderCircle, Mic, PenLine, RotateCcw, Square } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { Brand } from "@/components/brand";
+import { AppHeader } from "@/components/app-header";
 import { SurveyBuilderScreen } from "@/components/organizer/survey-builder-screen";
 import { Button } from "@/components/ui/button";
 import { api, apiCapabilities } from "@/lib/api";
@@ -59,10 +59,7 @@ export function CreateSurveyScreen() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <Brand />
-        <Button variant="secondary" size="sm" asChild><Link href="/dashboard"><ClipboardList className="size-4" aria-hidden="true" /> My surveys</Link></Button>
-      </header>
+      <AppHeader />
       <main className={styles.main}>
         <section className={styles.content} aria-labelledby="create-title">
           <p className={styles.eyebrow}>Start with an idea</p>

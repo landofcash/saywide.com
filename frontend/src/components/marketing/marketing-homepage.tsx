@@ -2,12 +2,12 @@
 
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
-import { ArrowRight, ClipboardList } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Brand } from "@/components/brand";
+import { AppHeader } from "@/components/app-header";
 import { marketingSlides } from "@/components/marketing/marketing-slides";
 
 import styles from "./marketing-homepage.module.css";
@@ -57,17 +57,9 @@ export function MarketingHomepage() {
 
   return (
     <div className={styles.page}>
-      <header className="relative z-20 border-b border-[var(--marketing-line)] bg-[var(--marketing-paper)]">
-        <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Brand />
-          <Link className={`${styles.button} ${styles.headerButton}`} href="/dashboard">
-            <ClipboardList className="size-4" aria-hidden="true" />
-            My surveys
-          </Link>
-        </div>
-      </header>
+      <AppHeader />
 
-      <main className="relative z-10 grid w-full gap-8 px-4 py-6 sm:px-6 lg:min-h-[calc(100svh-4rem-1px)] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-center lg:gap-14 lg:px-8 xl:gap-20">
+      <main className="relative z-10 grid w-full gap-8 px-4 py-6 sm:px-6 lg:min-h-[calc(100svh-var(--app-header-height))] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-center lg:gap-14 lg:px-8 xl:gap-20">
         <section className="min-w-0 max-w-xl">
           <h1 className="text-[2.8rem] font-black uppercase leading-[0.94] tracking-[-0.05em] sm:text-[3.7rem] lg:text-[4.75rem]">
             Everyone has something to say

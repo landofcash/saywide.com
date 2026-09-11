@@ -46,8 +46,8 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
 
   if (error || repeat || survey?.status !== "open") {
     const title = repeat ? "It looks like you already responded" : survey?.status === "closed" ? "This survey is closed" : "This survey is unavailable";
-    const description = repeat ? "This browser has a completed-response marker for this survey. This is a browser-based limit, not identity verification." : survey?.status === "closed" ? "The organizer is no longer accepting responses. Nothing you type here will be collected." : "The link may be invalid, expired, or temporarily unavailable. Check the link and try again.";
-    return <ParticipantShell><Card className="mx-auto mt-12 max-w-xl p-7 text-center sm:p-10"><span className="mx-auto grid size-14 place-items-center rounded-lg border border-amber-200 bg-amber-50"><TriangleAlert className="size-6 text-amber-800" /></span><h1 className="font-display mt-5 text-3xl font-bold tracking-[-0.025em]">{title}</h1><p className="mt-4 leading-7 text-[var(--muted)]">{description}</p>{!repeat && !survey && <Button className="mt-7" onClick={() => window.location.reload()}>Try again</Button>}</Card></ParticipantShell>;
+
+    return <ParticipantShell><Card className="mx-auto mt-12 max-w-xl p-7 text-center sm:p-10"><span className="mx-auto grid size-14 place-items-center rounded-lg border border-amber-200 bg-amber-50"><TriangleAlert className="size-6 text-amber-800" /></span><h1 className="font-display mt-5 text-3xl font-bold tracking-[-0.025em]">{title}</h1>{!repeat && !survey && <Button className="mt-7" onClick={() => window.location.reload()}>Try again</Button>}</Card></ParticipantShell>;
   }
 
   return (
