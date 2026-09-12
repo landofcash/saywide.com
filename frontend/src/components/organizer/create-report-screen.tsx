@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/form-controls";
 import { api } from "@/lib/api";
+import { rememberReportPresentation } from "@/lib/report-presentation";
 const examples = [
   { icon: FileSearch, label: "Overall picture", title: "Give me the overall picture", description: "Summarize the main ideas and different perspectives." },
   { icon: CheckCircle2, label: "Common themes", title: "Show what came up most often", description: "Find the most frequently mentioned themes, concerns, and suggestions." },
@@ -37,6 +38,7 @@ export function CreateReportScreen({ surveyId }: { surveyId: string }) {
     setError("");
     try {
       const report = await api.createReport(surveyId, instruction.trim());
+      rememberReportPresentation(report.reportId);
       router.push(`/reports/${report.reportId}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "The report could not be started. Your instruction is still here—please try again.");

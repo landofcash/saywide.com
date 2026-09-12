@@ -47,9 +47,9 @@ export function DashboardScreen() {
         <Button asChild variant="secondary" size="sm"><Link href="/account/create">Protect my surveys</Link></Button>
       </Card>}
 
-      <div className="mt-8 flex flex-wrap gap-2" aria-label="Filter surveys">
+      <div className="mt-8 flex flex-wrap gap-1.5" aria-label="Filter surveys">
         {filters.map((item) => (
-          <button key={item} onClick={() => setFilter(item)} className={`min-h-10 rounded-lg border px-4 text-sm font-semibold capitalize ${filter === item ? "border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
+          <button key={item} onClick={() => setFilter(item)} className={`min-h-8 rounded-md border px-3 text-xs font-semibold capitalize ${filter === item ? "border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
             {item}
           </button>
         ))}
@@ -67,7 +67,10 @@ export function DashboardScreen() {
               <Link href={href} key={survey.surveyId} className="group block">
                 <Card className="flex h-full min-h-64 flex-col p-6 transition duration-150 group-hover:border-[#87938e] group-hover:shadow-[0_4px_14px_rgba(16,24,21,0.08)]">
                   <div className="flex items-start justify-between gap-4">
-                    <Badge tone={survey.status === "open" ? "open" : survey.status === "draft" ? "draft" : "closed"}>{survey.status}</Badge>
+                    <Badge tone={survey.status === "open" ? "open" : survey.status === "draft" ? "draft" : "closed"} className="gap-1.5 rounded-full px-2.5 py-0.5">
+                      <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
+                      {survey.status}
+                    </Badge>
                     <ArrowRight className="size-5 text-[var(--muted)] transition group-hover:translate-x-1 group-hover:text-[var(--ink)]" />
                   </div>
                   <h2 className="font-display mt-5 text-2xl font-bold leading-tight tracking-[-0.035em]">{survey.title}</h2>

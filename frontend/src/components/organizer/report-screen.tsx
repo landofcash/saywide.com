@@ -1,18 +1,20 @@
 "use client";
 
 import type { Finding, Report, ReportActivity } from "@saywide/contracts";
-import { ArrowLeft, Check, ChevronDown, Download, FilePlus2, Quote, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download, FilePlus2, Quote, CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
+import { ReportProgress } from "@/components/organizer/report-progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { createReportPresentation, finishReportPresentation, hasPendingReportPresentation, rememberReportPresentation, reportStages } from "@/lib/report-presentation";
 import { formatDateTime, pluralize } from "@/lib/utils";
 
-const progressSteps = ["Preparing response snapshot", "Finding themes", "Checking evidence", "Writing report"];
+import styles from "./report-progress.module.css";
 
 export function ReportScreen({ reportId }: { reportId: string }) {
   return <ReportView key={reportId} reportId={reportId} />;
@@ -30,6 +32,16 @@ function ReportView({ reportId }: { reportId: string }) {
   useEffect(() => {
     let active = true;
     let timeout: number | undefined;
+    let needsPresentation = hasPendingReportPresentation(reportId);
+    let completedReport: Report | undefined;
+    const presentation = createReportPresentation((nextStep) => {
+      if (!active) return;
+      setStep(nextStep);
+      if (nextStep > reportStages.length && completedReport) {
+        finishReportPresentation(reportId);
+        setReport(completedReport);
+      }
+    });
 
     async function refresh() {
       try {
@@ -39,26 +51,39 @@ function ReportView({ reportId }: { reportId: string }) {
         setActivity(result.activity ?? []);
         setSurveyId(result.surveyId);
         if (result.status === "completed") {
-          setStep(progressSteps.length);
-          setReport(result.report);
+          completedReport = result.report;
+          setSurveyId(result.report.surveyId);
+          if (needsPresentation) {
+            presentation.update(reportStages.length);
+          } else {
+            // An existing report opens normally; newly created and observed running
+            // reports always finish their presentation, even after a page reload.
+            presentation.dispose();
+            setReport(result.report);
+          }
           return;
         }
         if (result.status === "failed") {
+          presentation.dispose();
+          finishReportPresentation(reportId);
           setFailed(true);
           setError("The report could not be completed. Your responses are safe; start another report to retry.");
           return;
         }
-        const progressIndex = progressSteps.indexOf(result.progress);
-        setStep(progressIndex < 0 ? 0 : progressIndex);
+        needsPresentation = true;
+        rememberReportPresentation(reportId);
+        const progressIndex = reportStages.findIndex((stage) => stage.progress === result.progress);
+        presentation.update(Math.max(0, progressIndex));
         timeout = window.setTimeout(refresh, 1000);
       } catch {
         if (!active) return;
+        presentation.dispose();
         setError("The report status could not be loaded. Please refresh this page.");
       }
     }
 
     void refresh();
-    return () => { active = false; if (timeout) window.clearTimeout(timeout); };
+    return () => { active = false; presentation.dispose(); if (timeout) window.clearTimeout(timeout); };
   }, [reportId, refreshKey]);
 
   function downloadMarkdown() {
@@ -74,20 +99,19 @@ function ReportView({ reportId }: { reportId: string }) {
   if (!report) {
     return (
       <OrganizerShell>
-        <div className="mx-auto max-w-2xl pt-10 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-lg border border-[var(--line)] bg-[var(--lavender)]"><Sparkles className={`size-6 ${error ? "" : "animate-pulse motion-reduce:animate-none"}`} /></span>
-          <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">{failed ? "Report stopped" : error ? "Status unavailable" : "Building your report"}</p>
-          <h1 className="font-display mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{failed ? "Your responses are safe" : "Following the evidence"}</h1>
-          {!error && <div className="mx-auto mt-8 max-w-md space-y-3 text-left" aria-live="polite">{progressSteps.map((label, index) => <div key={label} className={`flex items-center gap-3 rounded-lg border p-4 ${index < step ? "border-emerald-300 bg-[var(--mint-soft)]" : index === step ? "border-[var(--ink)] bg-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}><span className={`grid size-7 place-items-center rounded-md ${index < step ? "bg-emerald-700 text-white" : "bg-[var(--canvas)]"}`}>{index < step ? <Check className="size-4" /> : index + 1}</span><span className="text-sm font-semibold">{label}</span></div>)}</div>}
-          <ActivityTimeline activity={activity} expanded />
-          {!error && <p className="sr-only" role="status">{activity.at(-1)?.label ?? "Waiting for report status"}</p>}
-          {error && <p role="alert" className="mx-auto mt-6 max-w-md rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</p>}
+        <div className="mx-auto max-w-5xl text-center">
+          {error ? <div className="mx-auto max-w-xl rounded-3xl border border-[var(--line)] bg-white px-6 py-12">
+            <CircleAlert className="mx-auto size-9 text-[var(--muted)]" aria-hidden="true" />
+            <p className="mt-5 text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">{failed ? "Report stopped" : "Status unavailable"}</p>
+            <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em]">Your responses are safe</h1>
+            <p role="alert" className="mt-4 text-sm leading-7 text-[var(--muted)]">{error}</p>
+          </div> : <ReportProgress step={step} />}
+          <ActivityTimeline activity={activity} />
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            {error && !failed && <Button onClick={() => setRefreshKey((key) => key + 1)}>Retry status check</Button>}
+            {error && !failed && <Button onClick={() => { setStep(0); setError(""); setRefreshKey((key) => key + 1); }}>Retry status check</Button>}
             {failed && surveyId && <Button asChild><Link href={`/surveys/${surveyId}/reports/new`}>Start another report</Link></Button>}
-            <Button asChild variant="secondary"><Link href={surveyId ? `/surveys/${surveyId}` : "/dashboard"}>{surveyId ? "Back to survey" : "Back to surveys"}</Link></Button>
+            {error && <Button asChild variant="secondary"><Link href={surveyId ? `/surveys/${surveyId}` : "/dashboard"}>{surveyId ? "Back to survey" : "Back to surveys"}</Link></Button>}
           </div>
-          {!error && <p className="mt-4 text-sm text-[var(--muted)]">You can leave this page and return to this report from your survey.</p>}
         </div>
       </OrganizerShell>
     );
@@ -95,6 +119,7 @@ function ReportView({ reportId }: { reportId: string }) {
 
   return (
     <OrganizerShell wide>
+      <div className={styles.resultReveal}>
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div className="max-w-4xl"><Link href={`/surveys/${report.surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link><div className="mt-4 flex gap-2"><Badge tone="open">Validated</Badge><Badge>{pluralize(report.eligibleResponseCount, "response")}</Badge></div><h1 className="font-display mt-4 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What the responses are telling you</h1><p className="mt-4 max-w-3xl text-lg leading-8 text-[var(--muted)]">{report.instruction}</p><p className="mt-2 text-xs text-[var(--muted)]">Frozen {formatDateTime(report.snapshotAt)}</p></div>
         <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={downloadMarkdown}><Download className="size-4" /> Markdown</Button><Button variant="accent" asChild><Link href={`/surveys/${report.surveyId}/reports/new`}><FilePlus2 className="size-4" /> Another report</Link></Button></div>
@@ -109,19 +134,20 @@ function ReportView({ reportId }: { reportId: string }) {
           <Card className="border-amber-200 bg-amber-50 p-6"><p className="font-bold">Read with context</p><ul className="mt-3 list-disc space-y-2 pl-5 text-xs leading-5 text-amber-950/75">{report.limitations.map((item) => <li key={item}>{item}</li>)}</ul></Card>
         </aside>
       </div>
+      </div>
     </OrganizerShell>
   );
 }
 
-export function ActivityTimeline({ activity, expanded = false }: { activity: ReportActivity[]; expanded?: boolean }) {
+export function ActivityTimeline({ activity, expanded = false, preview = false }: { activity: ReportActivity[]; expanded?: boolean; preview?: boolean }) {
   if (!activity.length) return null;
   return <details open={expanded || undefined} className="mt-6 rounded-lg border border-[var(--line)] bg-white p-4 text-left">
     <summary className="cursor-pointer text-sm font-semibold">Agent activity · {activity.length} recent events</summary>
-    <p className="mt-2 text-xs text-[var(--muted)]">Actual agent calls and application checks. No private response content is shown.</p>
+    <p className="mt-2 text-xs text-[var(--muted)]">{preview ? "Sample agent activity for this preview. Events appear as each stage is shown; times and durations are illustrative." : "Actual agent calls and application checks. No private response content is shown."}</p>
     <ol className="mt-4 max-h-80 space-y-3 overflow-y-auto" aria-label="Report activity">
       {activity.map((event) => <li key={event.sequence} className="border-l-2 border-[var(--line)] pl-3 text-sm">
         <div className="flex flex-wrap justify-between gap-2"><span>{event.label}</span><span className="text-xs text-[var(--muted)]">{event.durationMs === null ? "" : `${(event.durationMs / 1000).toFixed(1)}s`}</span></div>
-        <div className="mt-1 text-xs text-[var(--muted)]">{event.source === "agent" ? "Strands agent" : "Application"} · <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleTimeString()}</time></div>
+        <div className="mt-1 text-xs text-[var(--muted)]">{event.source === "agent" ? "Strands agent" : "Application"} · <time dateTime={event.createdAt}>{preview ? new Date(event.createdAt).toLocaleTimeString("en-GB", { timeZone: "UTC" }) : new Date(event.createdAt).toLocaleTimeString()}</time></div>
       </li>)}
     </ol>
   </details>;
