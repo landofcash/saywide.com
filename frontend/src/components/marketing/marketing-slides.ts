@@ -12,9 +12,9 @@ export type MarketingSlide = {
 export const marketingSlides: MarketingSlide[] = [
   {
     number: "01",
-    label: "Placeholder one",
-    headline: "First story headline",
-    description: "Temporary supporting copy for the first Saywide story.",
+    label: "AI prepares the survey—just share it.",
+    headline: "Hear from everyone.",
+    description: "Step 1 — Create your survey with the agent.",
     image: {
       src: "/images/first-story.png",
       alt: "People gathered around a table with speech bubbles representing a shared conversation",
@@ -22,14 +22,14 @@ export const marketingSlides: MarketingSlide[] = [
   },
   {
     number: "02",
-    label: "Placeholder two",
-    headline: "Second story headline",
-    description: "Temporary supporting copy for the second Saywide story.",
+    label: "Respondents answer in their own words.",
+    headline: "Record what you want to say.",
+    description: "Step 2 — Collect responses for the agent.",
   },
   {
     number: "03",
-    label: "Placeholder three",
-    headline: "Third story headline",
-    description: "Temporary supporting copy for the third Saywide story.",
+    label: "Tell the agent what you want to discover.",
+    headline: "The agent generates a report.",
+    description: "Step 3 — Guide the agent to create the report.",
   },
 ];

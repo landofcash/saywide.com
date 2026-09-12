@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --app-header-height: 4rem;
+  --app-header-height: calc(4rem + 1px);
   --canvas: #f3f5f4;
   --paper: #ffffff;
   --ink: #17231f;
@@ -14,10 +14,6 @@
   --lavender: #e8ecef;
   --focus: rgb(40 100 81 / 22%);
   color-scheme: light;
-}
-
-@media (min-width: 640px) {
-  :root { --app-header-height: 4.5rem; }
 }
 
 * { box-sizing: border-box; }

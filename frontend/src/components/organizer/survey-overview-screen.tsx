@@ -79,8 +79,8 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{thresholdMet ? `${survey.submittedResponseCount} responses can be included in a new frozen snapshot.` : `${survey.settings.minReportResponses - survey.submittedResponseCount} more responses are needed for the privacy threshold.`}</p>
           <div className="mt-6 h-3 overflow-hidden rounded-full bg-[var(--canvas)]" aria-label={`${Math.round(progress)} percent toward report threshold`}><div className="h-full rounded-full bg-[var(--mint)]" style={{ width: `${progress}%` }} /></div>
           <div className="mt-2 flex justify-between text-xs font-semibold text-[var(--muted)]"><span>{pluralize(survey.submittedResponseCount, "response")}</span><span>Minimum {survey.settings.minReportResponses}</span></div>
-          <Button asChild={thresholdMet} disabled={!thresholdMet} variant="accent" className="mt-6 w-full">
-            {thresholdMet ? <Link href={`/surveys/${surveyId}/reports/new`}><FileText className="size-4" /> Create report</Link> : <span><FileText className="size-4" /> Create report</span>}
+          <Button asChild={thresholdMet} disabled={!thresholdMet} variant="accent" className="mt-6 w-full whitespace-nowrap">
+            {thresholdMet ? <Link href={`/surveys/${surveyId}/reports/new`}><FileText className="size-4 shrink-0" /> Create report</Link> : <><FileText className="size-4 shrink-0" /> Create report</>}
           </Button>
         </Card>
 

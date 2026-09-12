@@ -2,7 +2,7 @@
 
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Dot } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -59,22 +59,24 @@ export function MarketingHomepage() {
     <div className={styles.page}>
       <AppHeader />
 
-      <main className="relative z-10 grid w-full gap-8 px-4 py-6 sm:px-6 lg:min-h-[calc(100svh-var(--app-header-height))] lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-center lg:gap-14 lg:px-8 xl:gap-20">
+      <main className="relative z-10 flex min-h-[calc(100dvh-var(--app-header-height))] w-full items-center px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
+        <div className="grid w-full gap-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)] lg:items-center">
         <section className="min-w-0 max-w-xl">
           <h1 className="text-[2.8rem] font-black uppercase leading-[0.94] tracking-[-0.05em] sm:text-[3.7rem] lg:text-[4.75rem]">
             Everyone has something to say
           </h1>
-          <p className="mt-6 max-w-lg text-base leading-7 text-[var(--marketing-muted)] sm:text-lg sm:leading-8">
-            Ask a question{" "}
-            <ArrowRight className="mx-1 inline-block size-4 align-middle" aria-hidden="true" />{" "}
-            AI builds the survey
-            <span className="block pl-4">
-              <ArrowRight className="mx-1 inline-block size-4 align-middle" aria-hidden="true" />{" "}
-              Share the link{" "}
-              <ArrowRight className="mx-1 inline-block size-4 align-middle" aria-hidden="true" />{" "}
-              Your agent uncovers what matters most.
-            </span>
-          </p>
+          <ul className="mt-6 max-w-lg list-none p-0 text-base leading-7 text-[var(--marketing-muted)] sm:text-lg sm:leading-8" role="list">
+            {[
+              "Build a survey with AI",
+              "Share the link",
+              "Guide agent to create a report.",
+            ].map((text) => (
+              <li className="flex items-start gap-1" key={text}>
+                <Dot className="mt-0.5 size-6 shrink-0 text-[var(--marketing-accent)] sm:mt-1" aria-hidden="true" />
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
           <Link className={`${styles.button} ${styles.shimmerButton} mt-8`} href="/dashboard">
             <span className={styles.shimmerTrack} aria-hidden="true">
               <span className={styles.shimmerSlide}>
@@ -124,7 +126,7 @@ export function MarketingHomepage() {
                     alt={slide.image.alt}
                     className={styles.image}
                     fill
-                    sizes="(min-width: 1280px) 52vw, (min-width: 1024px) 54vw, (min-width: 640px) calc(100vw - 4rem), calc(100vw - 2rem)"
+                    sizes="(min-width: 1024px) calc(60.87vw - 54px), (min-width: 640px) calc(100vw - 60px), calc(100vw - 44px)"
                     src={slide.image.src}
                   />
                 ) : (
@@ -141,6 +143,7 @@ export function MarketingHomepage() {
             ))}
           </div>
         </section>
+        </div>
       </main>
     </div>
   );
