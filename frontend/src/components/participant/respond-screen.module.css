@@ -47,6 +47,7 @@
   background: var(--mint-soft);
   text-align: center;
 }
+.invitationMicrophone { display: none; }
 .typeInstead {
   min-height: 2.75rem;
   padding: 0.5rem;
@@ -97,6 +98,8 @@
   .microphone[data-recording="true"] { animation: none; }
   .microphone > svg { width: 1.75rem; height: 1.75rem; }
   .microphone > .stopIcon { width: 1.5rem; height: 1.5rem; }
+  .invitationMicrophone { display: inline-flex; margin: 1rem 0 0.75rem; }
+  .invitationMicrophone:focus-visible { outline-color: var(--coral); }
   .feedback { min-height: 1.5rem; margin-top: 0.5rem; color: white; }
   .feedback button { color: white; }
   .voiceHint { display: block; margin-top: 0.125rem; font-size: 0.75rem; color: rgb(255 255 255 / 80%); }

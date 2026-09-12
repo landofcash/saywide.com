@@ -36,6 +36,7 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
   const [error, setError] = useState("");
   const [inputRevealed, setInputRevealed] = useState(false);
   const answerInputRef = useRef<HTMLTextAreaElement>(null);
+  const microphoneRef = useRef<HTMLButtonElement>(null);
   const transcriptionRef = useRef<TranscribeStreamController | undefined>(undefined);
   const voiceBaselineRef = useRef("");
   const mountedRef = useRef(true);
@@ -103,6 +104,8 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
   }
 
   async function startRecording() {
+    if (recordingActive) return;
+    setInputRevealed(true);
     setError("");
     setSaveState("idle");
     setRecordingSeconds(0);
@@ -145,6 +148,7 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
       }
       transcriptionRef.current = controller;
       setRecordingState("recording");
+      window.requestAnimationFrame(() => microphoneRef.current?.focus({ preventScroll: true }));
     } catch (reason) {
       if (!mountedRef.current) return;
       setInputRevealed(true);
@@ -199,6 +203,7 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
         {apiCapabilities.voice && (
           <div className={styles.recorder}>
             <button
+              ref={microphoneRef}
               type="button"
               className={styles.microphone}
               data-recording={recordingState === "recording"}
@@ -235,6 +240,16 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
               </p>
               <button
                 type="button"
+                className={`${styles.microphone} ${styles.invitationMicrophone}`}
+                disabled={recordingActive}
+                aria-label="Answer by voice"
+                aria-describedby="answer-recording-status"
+                onClick={() => void startRecording()}
+              >
+                <Mic aria-hidden="true" />
+              </button>
+              <button
+                type="button"
                 className={styles.typeInstead}
                 disabled={recordingState === "starting" || recordingState === "stopping"}
                 onClick={() => {
@@ -257,7 +272,7 @@ export function RespondScreen({ publicToken, initialQuestion = 1 }: { publicToke
               setAnswers((current) => ({ ...current, [question.questionId]: event.target.value }));
               setSaveState("idle");
             }}
-            placeholder="Write what comes to mind. You can edit this before submitting."
+            placeholder={recordingActive ? "Your words will appear here as you speak." : "Write what comes to mind. You can edit this before submitting."}
             className={`${styles.answerInput} min-h-36 text-base leading-7 ${showVoiceInvitation ? "invisible" : ""}`}
           />
         </div>
