@@ -1,16 +1,35 @@
 "use client";
 
 import type { PublicSurvey } from "@saywide/contracts";
-import { ArrowRight, Check, Clock3, Keyboard, Mic, ShieldCheck, TriangleAlert } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Clock3, Keyboard, LoaderCircle, Mic, ShieldCheck, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ParticipantShell } from "@/components/participant/participant-shell";
+import styles from "@/components/participant/welcome-screen.module.css";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label } from "@/components/ui/form-controls";
 import { api, apiCapabilities } from "@/lib/api";
 import { hasSubmittedFromBrowser, saveParticipantSession } from "@/lib/participant-state";
+
+function initializeDisclosure(node: HTMLDetailsElement | null) {
+  // Set the initial layout once; subsequent renders preserve the participant's choice.
+  if (node) node.open = window.matchMedia("(min-width: 640px)").matches;
+}
+
+function ResponseOption({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+  return (
+    <details ref={initializeDisclosure} className={styles.option}>
+      <summary className={styles.optionSummary}>
+        <span className={styles.optionIcon}><Icon size={19} aria-hidden="true" /></span>
+        <span>{title}</span>
+        <ChevronDown size={17} className={styles.chevron} aria-hidden="true" />
+      </summary>
+      <p className={styles.optionDescription}>{children}</p>
+    </details>
+  );
+}
 
 export function WelcomeScreen({ publicToken }: { publicToken: string }) {
   const router = useRouter();
@@ -19,6 +38,7 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
   const [repeat, setRepeat] = useState(false);
   const [accessCode, setAccessCode] = useState("");
   const [starting, setStarting] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setRepeat(hasSubmittedFromBrowser(publicToken)), 0);
@@ -52,21 +72,46 @@ export function WelcomeScreen({ publicToken }: { publicToken: string }) {
 
   return (
     <ParticipantShell>
-      <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">You’re invited to take part in a survey</p><h1 className="font-display mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{survey.title}</h1><p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">{survey.introduction}</p></div>
-      <Card className="mt-6 p-5 sm:p-7">
-        <div className="flex flex-wrap justify-start gap-2">
-          <div className="w-fit rounded-lg border border-[var(--line)] bg-[var(--canvas)] px-3 py-2">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Clock3 className="size-3.5" /> About {survey.estimatedMinutes}′</p>
+      <div className={styles.welcome}>
+        <header className={styles.intro}>
+          <p className={styles.eyebrow}>You’re invited to take part in a survey</p>
+          <h1 className={styles.title}>{survey.title}</h1>
+          <p className={styles.description}>{survey.introduction}</p>
+          <div className={styles.metadata}>
+            <span><Clock3 size={16} aria-hidden="true" /> About {survey.estimatedMinutes} min</span>
+            <span className={styles.metadataDot} aria-hidden="true" />
+            <span><Check size={16} aria-hidden="true" /> {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}</span>
           </div>
-          <div className="w-fit rounded-lg border border-[var(--line)] bg-[var(--canvas)] px-3 py-2">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--coral-dark)]"><Check className="size-3.5" /> {survey.questions.length} question{survey.questions.length === 1 ? "" : "s"}</p>
-          </div>
+        </header>
+
+        <div className={styles.action}>
+          {survey.requiresAccessCode && <div className={styles.accessCode}><Label htmlFor="access-code">Access code</Label><Input id="access-code" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="one-time-code" /></div>}
+          <Button variant="accent" size="lg" className={styles.startButton} onClick={start} disabled={starting || (survey.requiresAccessCode && !accessCode)} aria-busy={starting}
+            data-pressed={pressed}
+            onPointerDown={(event) => {
+              if (event.button !== 0) return;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setPressed(true);
+            }}
+            onPointerUp={() => setPressed(false)}
+            onPointerCancel={() => setPressed(false)}
+            onLostPointerCapture={() => setPressed(false)}
+          >
+            <span className={styles.shimmerTrack} aria-hidden="true"><span className={styles.shimmerSlide}><span className={styles.shimmerSpark} /></span></span>
+            <span className={styles.shimmerBackdrop} aria-hidden="true" />
+            <span>{starting ? "Starting…" : "Start survey"}</span>
+            <span className={styles.buttonIcon}>{starting ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <ArrowRight className="size-5" aria-hidden="true" />}</span>
+          </Button>
+          <p className={styles.consent}>By starting, you agree to share your answers for the purpose stated above.</p>
         </div>
-        {survey.requiresAccessCode && <div className="mt-6"><Label htmlFor="access-code">Access code</Label><Input id="access-code" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="one-time-code" /></div>}
-        <Button variant="accent" size="lg" className="mt-5 w-full" onClick={start} disabled={starting || (survey.requiresAccessCode && !accessCode)}>{starting ? "Starting…" : <>Start survey <ArrowRight className="size-5" /></>}</Button>
-        <p className="mt-4 text-sm leading-6 text-[var(--muted)]">By starting, you agree to share your answers for the purpose stated above.</p>
-        <div className="mt-7 space-y-4 border-t border-[var(--line)] pt-6"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[var(--muted)]">Privacy and response options</p><div className="flex gap-3"><ShieldCheck className="mt-0.5 size-5 shrink-0 text-emerald-700" /><div><p className="font-bold">No name, email, or account</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Your words are combined with other responses. Short excerpts may appear as anonymous evidence.</p></div></div>{apiCapabilities.voice && <div className="flex gap-3"><Mic className="mt-0.5 size-5 shrink-0 text-[var(--coral-dark)]" /><div><p className="font-bold">Speak or type every answer</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Voice is transcribed immediately and audio is not retained. You review all text before submitting.</p></div></div>}<div className="flex gap-3"><Keyboard className="mt-0.5 size-5 shrink-0 text-slate-600" /><div><p className="font-bold">Type every answer</p><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Your draft stays editable until you submit it.</p></div></div></div>
-      </Card>
+
+        <section className={styles.options} aria-labelledby="response-options-title">
+          <h2 id="response-options-title" className={styles.optionsTitle}>Privacy and response options</h2>
+          <ResponseOption icon={ShieldCheck} title="No name, email, or account">Your words are combined with other responses. Short excerpts may appear as anonymous evidence.</ResponseOption>
+          {apiCapabilities.voice && <ResponseOption icon={Mic} title="Speak or type every answer">Voice is transcribed immediately and audio is not retained. You review all text before submitting.</ResponseOption>}
+          <ResponseOption icon={Keyboard} title="Type every answer">Your draft stays editable until you submit it.</ResponseOption>
+        </section>
+      </div>
     </ParticipantShell>
   );
 }
