@@ -11,10 +11,9 @@
 .inner {
   display: flex;
   width: 100%;
-  max-width: 1280px;
   height: calc(var(--app-header-height) - 1px);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -59,7 +58,7 @@
 }
 
 @media (min-width: 640px) {
-  .inner { gap: 24px; }
+  .inner { gap: 24px; padding: 0 32px; }
   .brand { gap: 12px; }
   .navigation { gap: 12px; }
   .desktopLinks { display: flex; }

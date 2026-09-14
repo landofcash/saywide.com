@@ -118,7 +118,7 @@ function ReportView({ reportId }: { reportId: string }) {
   }
 
   return (
-    <OrganizerShell wide>
+    <OrganizerShell>
       <div className={styles.resultReveal}>
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div className="max-w-4xl"><Link href={`/surveys/${report.surveyId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)]"><ArrowLeft className="size-4" /> Survey overview</Link><div className="mt-4 flex gap-2"><Badge tone="open">Validated</Badge><Badge>{pluralize(report.eligibleResponseCount, "response")}</Badge></div><h1 className="font-display mt-4 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">What the responses are telling you</h1><p className="mt-4 max-w-3xl text-lg leading-8 text-[var(--muted)]">{report.instruction}</p><p className="mt-2 text-xs text-[var(--muted)]">Frozen {formatDateTime(report.snapshotAt)}</p></div>

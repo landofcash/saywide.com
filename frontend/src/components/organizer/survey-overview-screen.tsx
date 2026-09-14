@@ -54,20 +54,29 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
   }
 
   return (
-    <OrganizerShell wide>
+    <OrganizerShell>
       <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>
-      <div className="mt-4 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-        <div className="max-w-3xl">
+      <div className="mt-4 max-w-3xl">
           <h1 className="font-display text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{survey.title}</h1>
           <p className="mt-4 leading-7 text-[var(--muted)]">{survey.introduction}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {participantPath && <Button variant="secondary" onClick={copyLink}><Clipboard className="size-4" /> {copied ? "Copied" : "Copy link"}</Button>}
-          <Button variant={survey.status === "open" ? "danger" : "secondary"} onClick={changeStatus} disabled={changing || survey.status === "draft"}>{survey.status === "open" ? <Lock className="size-4" /> : <RotateCcw className="size-4" />}{changing ? "Updating…" : survey.status === "open" ? "Close survey" : "Reopen"}</Button>
-        </div>
       </div>
 
-      <div className={`mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 ${participantPath ? "xl:grid-cols-[1fr_1fr_1.15fr]" : "xl:grid-cols-2"}`}>
+      <div className={`mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 ${participantPath ? "xl:grid-cols-[1.15fr_1fr_1fr]" : "xl:grid-cols-2"}`}>
+        {participantPath && (
+          <Card className="flex flex-col border-t-4 border-t-slate-500 bg-white p-5 sm:col-span-2 xl:col-span-1">
+            <div className="flex flex-1 items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Scan to respond</p>
+                <p className="mt-3 text-sm font-semibold leading-5">Open the survey on any phone</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--muted)]">The participant link is encoded here.</p>
+              </div>
+              <div className="shrink-0 rounded-lg border border-[var(--line)] bg-white p-2">
+                <QRCodeSVG value={participantUrl} size={108} level="M" marginSize={1} title={`QR code for ${survey.title}`} fgColor="#17231f" bgColor="#ffffff" />
+              </div>
+            </div>
+            <Button variant="secondary" size="sm" className="mt-4 w-full" onClick={copyLink}><Clipboard className="size-4 shrink-0" /> {copied ? "Copied" : "Copy link"}</Button>
+          </Card>
+        )}
         <Card className="border-t-4 border-t-emerald-700 bg-white p-5">
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Response activity</p>
           <div className="mt-3 grid grid-cols-2 divide-x divide-[var(--line)]">
@@ -81,19 +90,9 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
             </div>
           </div>
         </Card>
-        <Metric label="Closes" status={survey.status} value={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt, { month: "short", day: "numeric" }) : "Manual"} detail={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt) : "No expiry set"} />
-        {participantPath && (
-          <Card className="flex items-center justify-between gap-5 border-t-4 border-t-slate-500 bg-white p-5 sm:col-span-2 xl:col-span-1">
-            <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">Scan to respond</p>
-              <p className="mt-3 text-sm font-semibold leading-5">Open the survey on any phone</p>
-              <p className="mt-1 text-xs leading-5 text-[var(--muted)]">The participant link is encoded here.</p>
-            </div>
-            <div className="shrink-0 rounded-lg border border-[var(--line)] bg-white p-2">
-              <QRCodeSVG value={participantUrl} size={108} level="M" marginSize={1} title={`QR code for ${survey.title}`} fgColor="#17231f" bgColor="#ffffff" />
-            </div>
-          </Card>
-        )}
+        <Metric label="Closes" status={survey.status} value={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt, { month: "short", day: "numeric" }) : "Manual"} detail={survey.settings.expiresAt ? formatDate(survey.settings.expiresAt) : "No expiry set"}>
+          <Button variant={survey.status === "open" ? "danger" : "secondary"} size="sm" className="w-full" onClick={changeStatus} disabled={changing || survey.status === "draft"}>{survey.status === "open" ? <Lock className="size-4 shrink-0" /> : <RotateCcw className="size-4 shrink-0" />}{changing ? "Updating…" : survey.status === "open" ? "Close survey" : "Reopen"}</Button>
+        </Metric>
       </div>
 
       {apiCapabilities.reports && (reports.length === 0 ? (
@@ -147,9 +146,9 @@ export function SurveyOverviewScreen({ surveyId }: { surveyId: string }) {
   );
 }
 
-function Metric({ label, value, detail, status }: { label: string; value: string; detail: string; status: SurveyDetail["status"] }) {
+function Metric({ label, value, detail, status, children }: { label: string; value: string; detail: string; status: SurveyDetail["status"]; children: React.ReactNode }) {
   return (
-    <Card className="border-t-4 border-t-[var(--coral)] bg-white p-5">
+    <Card className="flex flex-col border-t-4 border-t-[var(--coral)] bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p>
         <Badge tone={status === "open" ? "open" : status === "draft" ? "draft" : "closed"} className="gap-1.5 rounded-full px-2.5 py-0.5">
@@ -159,6 +158,7 @@ function Metric({ label, value, detail, status }: { label: string; value: string
       </div>
       <p className="font-display mt-3 text-3xl font-bold tracking-[-0.025em]">{value}</p>
       <p className="mt-1 text-xs text-[var(--muted)]">{detail}</p>
+      <div className="mt-auto pt-4">{children}</div>
     </Card>
   );
 }

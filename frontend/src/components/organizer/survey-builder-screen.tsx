@@ -111,7 +111,7 @@ export function SurveyBuilderScreen({ surveyId, initialDraft }: { surveyId?: str
   }
 
   return (
-    <OrganizerShell wide>
+    <OrganizerShell>
       <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--muted)] hover:text-[var(--ink)]"><ArrowLeft className="size-4" /> My surveys</Link>

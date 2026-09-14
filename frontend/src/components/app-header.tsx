@@ -29,12 +29,12 @@ export function AppHeader({ variant = "public" }: { variant?: "public" | "organi
     <header className={styles.header} onKeyDown={(event) => {
       if (event.key === "Escape" && open) { setOpenPath(null); menuButton.current?.focus(); }
     }}>
-      <div className={styles.inner}>
+      <div className={`${styles.inner} max-w-7xl`}>
         <Brand className={styles.brand} />
         {variant !== "participant" && <nav className={styles.navigation} aria-label="Main navigation">
           <div className={styles.desktopLinks}>{secondaryLinks}</div>
           <Link href="/dashboard" className={styles.primary} aria-current={pathname === "/dashboard" ? "page" : undefined} onClick={() => setOpenPath(null)}>
-            <ClipboardList aria-hidden="true" /> My surveys
+            <ClipboardList aria-hidden="true" /> Dashboard
           </Link>
           {hasSecondary && <button ref={menuButton} type="button" className={styles.menuButton} aria-label={open ? "Close navigation" : "More navigation"} aria-expanded={open} aria-controls="app-header-mobile-navigation" onClick={() => setOpenPath(open ? null : pathname)}>
             {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}

@@ -1,7 +1,7 @@
 "use client";
 
 import type { SurveyStatus, SurveySummary } from "@saywide/contracts";
-import { ArrowRight, Clock3, FileText, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock3, MessageSquare, Plus, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -30,10 +30,10 @@ export function DashboardScreen() {
   const visible = filter === "all" ? surveys : surveys.filter((survey) => survey.status === filter);
 
   return (
-    <OrganizerShell wide>
+    <OrganizerShell>
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Your workspace</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--coral-dark)]">Dashboard</p>
           <h1 className="font-display mt-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">My surveys</h1>
         </div>
         <Button asChild variant="accent" size="lg"><Link href="/create"><Plus className="size-5" /> New survey</Link></Button>
@@ -65,7 +65,7 @@ export function DashboardScreen() {
             const href = survey.status === "draft" ? `/surveys/${survey.surveyId}/edit` : `/surveys/${survey.surveyId}`;
             return (
               <Link href={href} key={survey.surveyId} className="group block">
-                <Card className="flex h-full min-h-64 flex-col p-6 transition duration-150 group-hover:border-[#87938e] group-hover:shadow-[0_4px_14px_rgba(16,24,21,0.08)]">
+                <Card className="flex h-full min-h-64 flex-col p-5 transition duration-150 group-hover:border-[#87938e] group-hover:shadow-[0_4px_14px_rgba(16,24,21,0.08)] sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <Badge tone={survey.status === "open" ? "open" : survey.status === "draft" ? "draft" : "closed"} className="gap-1.5 rounded-full px-2.5 py-0.5">
                       <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
@@ -73,14 +73,16 @@ export function DashboardScreen() {
                     </Badge>
                     <ArrowRight className="size-5 text-[var(--muted)] transition group-hover:translate-x-1 group-hover:text-[var(--ink)]" />
                   </div>
-                  <h2 className="font-display mt-5 text-2xl font-bold leading-tight tracking-[-0.035em]">{survey.title}</h2>
-                  <div className="mt-auto grid grid-cols-2 gap-3 pt-8 text-sm">
-                    <div className="rounded-lg bg-[var(--canvas)] p-3"><p className="text-2xl font-bold">{survey.submittedResponseCount}</p><p className="text-xs text-[var(--muted)]">submissions</p></div>
-                    <div className="rounded-lg bg-[var(--canvas)] p-3"><p className="text-2xl font-bold">{survey.questionCount}</p><p className="text-xs text-[var(--muted)]">questions</p></div>
+                  <h2 className="font-display mt-4 break-words text-xl font-bold leading-snug tracking-[-0.025em]">{survey.title}</h2>
+                  <div className="mt-auto flex items-center gap-3 pt-6">
+                    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[var(--mint-soft)] text-[var(--coral)]"><MessageSquare className="size-5" aria-hidden="true" /></span>
+                    <p className="flex flex-wrap items-baseline gap-x-2 text-lg font-semibold text-[var(--ink)]">
+                      {survey.submittedResponseCount === 0 ? "No responses yet" : <><span className="font-display text-3xl font-bold tabular-nums tracking-tight">{survey.submittedResponseCount}</span><span>{survey.submittedResponseCount === 1 ? "response" : "responses"}</span></>}
+                    </p>
                   </div>
-                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--muted)]">
-                    {apiCapabilities.reports && <span className="flex items-center gap-1"><FileText className="size-3.5" /> {survey.reportState}</span>}
-                    <span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {survey.expiresAt ? `Ends ${formatDate(survey.expiresAt)}` : pluralize(survey.questionCount, "question")}</span>
+                  <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 border-t border-[var(--line)] pt-4 text-xs text-[var(--muted)]">
+                    <span>{pluralize(survey.questionCount, "question")}</span>
+                    <span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {survey.expiresAt ? `Ends ${formatDate(survey.expiresAt)}` : "No expiry"}</span>
                   </div>
                 </Card>
               </Link>
