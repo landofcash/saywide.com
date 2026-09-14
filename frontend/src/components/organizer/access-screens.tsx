@@ -102,7 +102,7 @@ export function LoginScreen() {
       <ErrorMessage message={loginError} />
       <Button type="submit" variant="accent" className={`${styles.signIn} cursor-pointer`}><LogIn className="size-4" aria-hidden="true" />{pending === "login" ? "Signing in..." : "Sign in"}</Button>
     </fieldset></form>
-    <p className={styles.alternative}>Don't have an account? <Link href={`/account/create?next=${encodeURIComponent(access.destination)}`}>Create account</Link></p>
+    <p className={styles.alternative}>Don&apos;t have an account? <Link href={`/account/create?next=${encodeURIComponent(access.destination)}`}>Create account</Link></p>
   </AccountFrame>;
 }
 
@@ -124,7 +124,6 @@ export function CreateAccountScreen() {
     catch (error) { setError(errorText(error)); setPending(false); }
   }
   if (!access.ready) return <SessionPending {...access} />;
-  const count = access.session!.guestSurveyCount;
   return <AccountFrame>
     <div className={styles.topBadge}><span className={styles.icon}><ShieldCheck aria-hidden="true" /></span><span>Keep your surveys.</span></div>
     <p className={styles.description}>Create an account to sign in and access your surveys from any device.</p>
@@ -157,7 +156,7 @@ export function ClaimAccountScreen() {
   return <AccountFrame>
     <span className={styles.icon}><ShieldCheck aria-hidden="true" /></span>
     <h1 className={styles.title}>Bring your guest<br />surveys with you?</h1>
-    <p className={styles.description}>This browser has surveys that aren't connected to your account. You choose what happens next.</p>
+    <p className={styles.description}>This browser has surveys that aren&apos;t connected to your account. You choose what happens next.</p>
     <div className={styles.transfer}><span>From this browser</span><strong>{session.guestSurveyCount} guest {session.guestSurveyCount === 1 ? "survey" : "surveys"}</strong><ArrowRight aria-hidden="true" /><span>To your account</span><strong>{session.workspace?.kind === "registered" ? session.workspace.email : ""}</strong></div>
     <p className={styles.guestHint}>Survey links, responses, and reports stay intact. Guest access will be retired after the move.</p>
     <label className={styles.confirm}><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} disabled={pending} /><span>Move these surveys into my account. I understand this cannot be undone from this screen.</span></label>
