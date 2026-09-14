@@ -4,7 +4,7 @@
 
 ## 1. Scope
 
-This document defines the database tables, fields, relationships, constraints, indexes, and lifecycle rules for Saywide. It is the detailed database companion to the [development specification](../development-spec.md).
+This document defines the database tables, fields, relationships, constraints, indexes, and lifecycle rules for Saywide. It is the detailed database companion to the [project overview](../README.md).
 
 Only the Fastify backend connects to PostgreSQL. The frontend communicates with the backend through the HTTP API and never receives database credentials or imports database models.
 

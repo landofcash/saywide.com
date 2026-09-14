@@ -8,7 +8,13 @@ dist/
 .env.local
 .env.*.local
 .playwright-cli/
-output/playwright/
+output/
+.local-notes/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.junie/
 
 /frontend/.idea
 /frontend/.junie

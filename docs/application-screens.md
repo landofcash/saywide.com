@@ -4,7 +4,7 @@
 
 ## 1. Scope
 
-This document defines each user-facing screen, its purpose, functional elements, states, and transitions. It complements the [development specification](../development-spec.md), [API endpoints](api-endpoints.md), and [database structure](database-structure.md).
+This document defines each user-facing screen, its purpose, functional elements, states, and transitions. It complements the [project overview](../README.md), [API endpoints](api-endpoints.md), and [database structure](database-structure.md).
 
 The interface is mobile-first for participants and responsive for organizers. Voice is always optional: every recording interaction has a fully usable text path.
 

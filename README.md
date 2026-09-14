@@ -8,7 +8,7 @@
 
 Build a survey with AI. Collect answers by voice. Saywide's agent turns voices into better decisions.
 
-[Visit Saywide](https://saywide.com) · [How it works](#how-it-works) · [Run locally](#local-development)
+[Visit Saywide](https://saywide.com) · [Demo video](https://www.youtube.com/watch?v=dtRBhO6HJOA) · [How it works](#how-it-works) · [Run locally](#local-development)
 
 **Powered by the AWS Strands Agents SDK**
 
@@ -181,6 +181,6 @@ Technical references: [API endpoints](docs/api-endpoints.md) · [Database struct
 
 **Helping communities turn every voice into better decisions.**
 
-[Visit Saywide](https://saywide.com) · [Explore the flow](docs/saywide-flow.svg)
+[Visit Saywide](https://saywide.com) · [Watch the demo](https://www.youtube.com/watch?v=dtRBhO6HJOA) · [Explore the flow](docs/saywide-flow.svg)
 
 </div>

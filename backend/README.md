@@ -4,14 +4,14 @@
 
 The survey builder supports dictating the title, participant introduction, and each question separately.
 `POST /api/organizer/transcription-sessions` issues an Amazon Transcribe streaming URL
-using the existing AWS configuration. It requires a guest session and an allowed browser
+using the existing AWS configuration. It requires an organizer session and an allowed browser
 origin, and is limited to 20 requests per hour per IP. Audio streams directly from the
 browser to Transcribe; the application does not store it.
 
 `POST /api/organizer/polish-text` accepts `{ field: "title" | "introduction" | "question", text: string }`
 and returns `{ text: string }`. It uses `OPENAI_API_KEY` and `OPENAI_MODEL` from the backend
 environment, independently of the report model provider. This endpoint also requires a
-guest session and allowed origin and is limited to 20 requests per hour per IP. Model calls
+organizer session and allowed origin and is limited to 20 requests per hour per IP. Model calls
 have a 30-second timeout, no retries, and response storage disabled. It only suggests wording;
 it does not save a survey, generate questions, or change dates. The browser shows the suggestion
 for review and supports keeping or restoring the original text. Manual editing remains available
@@ -21,7 +21,7 @@ This directory implements the anonymous-text and report APIs described in
 [`docs/api-endpoints.md`](../docs/api-endpoints.md): health, guest workspaces,
 manual survey CRUD/status, participant-safe survey reads, response sessions,
 answer upserts, submission, short-lived Amazon Transcribe Streaming
-authorization, and the Phase 2 evidence-backed report workflow.
+authorization, account access, AI survey drafting, and the evidence-backed report workflow.
 
 The frontend never imports backend implementation code. Shared browser-safe
 schemas live in `packages/contracts`.
@@ -107,10 +107,9 @@ build copies skills into `dist/skills`; deploy the entire dist directory.
 Activation records mean "guidance loaded", not "review completed". The report
 agent is prompted to self-check, but a separate enforced review/revision workflow
 is not implemented here. Backend reference validation and counting remain mandatory.
-No database migration or required new environment variable is needed.
-
-Account registration/login, guest claiming, and goal-to-survey generation are
-not registered yet. Live HTTP mode exposes participant voice transcription and
+Account registration, login, logout, and explicit guest-workspace transfer are
+registered alongside survey drafting at `POST /api/organizer/draft-survey`.
+Live HTTP mode exposes participant voice transcription and
 asynchronous Strands reports. Report requests freeze their snapshot using the
 database clock, persist privacy-safe run events, validate all model references,
 and calculate support counts in application code.

@@ -4,7 +4,7 @@
 
 ## 1. Scope
 
-This document defines the Fastify backend endpoints used by the Saywide frontend. It is the API companion to the [development specification](../development-spec.md) and [database structure](database-structure.md).
+This document defines the Fastify backend endpoints used by the Saywide frontend. It is the API companion to the [project overview](../README.md) and [database structure](database-structure.md).
 
 ### 1.1 Implementation status
 
