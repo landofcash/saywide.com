@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { OrganizerAccess } from "./auth-service.js";
 
 import type { CreateReportResponse, ReportResult, ReportSummary } from "@saywide/contracts";
 import { z } from "zod";
@@ -56,8 +57,9 @@ export class ReportService {
     private readonly config: AppConfig,
   ) {}
 
-  async create(organizerId: string, surveyId: string, instruction: string, idempotencyKey?: string): Promise<CreateReportResponse> {
+  async create(organizerId: string, surveyId: string, instruction: string, idempotencyKey: string | undefined, access: OrganizerAccess): Promise<CreateReportResponse> {
     const result = await this.repository.createRequest({
+      access,
       organizerId,
       surveyId,
       instruction,

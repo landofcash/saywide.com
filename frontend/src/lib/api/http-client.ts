@@ -12,7 +12,7 @@ import type {
   SurveyListResponse,
   TranscriptionSessionResponse,
 } from "@saywide/contracts";
-import { generatedSurveyDraftSchema } from "@saywide/contracts";
+import { generatedSurveyDraftSchema, organizerSessionSchema, loginResponseSchema, registerResponseSchema, claimGuestResponseSchema } from "@saywide/contracts";
 
 import {
   completeDraft,
@@ -25,7 +25,6 @@ import type { SaywideApi } from "./types";
 
 const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000").replace(/\/$/, "");
 const surveyCache = new Map<string, PublicSurvey>();
-let guestSession: Promise<void> | undefined;
 
 class HttpApiError extends Error {
   constructor(
@@ -44,6 +43,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers, credentials: "include" });
   if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined" && !path.startsWith("/api/public/") && !path.startsWith("/api/auth/")) {
+      window.dispatchEvent(new Event("saywide:auth-expired"));
+    }
     let body: ApiError | undefined;
     try {
       body = await response.json() as ApiError;
@@ -57,15 +59,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       body?.error.requestId,
     );
   }
-  return response.json() as Promise<T>;
-}
-
-async function ensureGuestSession(): Promise<void> {
-  guestSession ??= request("/api/organizer/guest-session", { method: "POST" }).then(() => undefined).catch((error) => {
-    guestSession = undefined;
-    throw error;
-  });
-  return guestSession;
+  return response.status === 204 ? undefined as T : response.json() as Promise<T>;
 }
 
 async function getPublicSurvey(publicToken: string): Promise<PublicSurvey> {
@@ -92,41 +86,40 @@ async function ensureResponseSession(publicToken: string) {
   return { ...session, consentVersion: survey.consentVersion };
 }
 
-function unavailable(feature: string): never {
-  throw new Error(`${feature} is available in demo mode and is not part of the live Phase 1 backend.`);
-}
-
 export const httpSaywideApi: SaywideApi = {
+  async getSession() {
+    return organizerSessionSchema.parse(await request("/api/auth/session", { cache: "no-store" }));
+  },
+  async continueAsGuest() {
+    await request("/api/organizer/guest-session", { method: "POST" });
+  },
+  async logout() {
+    await request("/api/auth/logout", { method: "POST" });
+  },
   async createOrganizerTranscriptionSession() {
-    await ensureGuestSession();
     return request<TranscriptionSessionResponse>("/api/organizer/transcription-sessions", { method: "POST" });
   },
 
   async polishSurveyText(input) {
-    await ensureGuestSession();
     return request<PolishSurveyTextResponse>("/api/organizer/polish-text", {
       method: "POST", body: JSON.stringify(input),
     });
   },
   async listSurveys() {
-    await ensureGuestSession();
     return (await request<SurveyListResponse>("/api/organizer/surveys")).items;
   },
 
   async getSurvey(surveyId) {
-    await ensureGuestSession();
     return request<SurveyDetail>(`/api/surveys/${encodeURIComponent(surveyId)}`);
   },
 
   async draftSurveyFromGoal(transcript, signal) {
-    await ensureGuestSession();
     return generatedSurveyDraftSchema.parse(await request("/api/organizer/draft-survey", {
       method: "POST", body: JSON.stringify({ transcript }), signal,
     }));
   },
 
   async createSurvey(input: SurveyDraftInput) {
-    await ensureGuestSession();
     return request<SurveyDetail>("/api/surveys", {
       method: "POST",
       headers: { "Idempotency-Key": crypto.randomUUID() },
@@ -135,7 +128,6 @@ export const httpSaywideApi: SaywideApi = {
   },
 
   async updateSurvey(surveyId, input) {
-    await ensureGuestSession();
     return request<SurveyDetail>(`/api/surveys/${encodeURIComponent(surveyId)}`, {
       method: "PATCH",
       body: JSON.stringify(input),
@@ -143,13 +135,11 @@ export const httpSaywideApi: SaywideApi = {
   },
 
   async publishSurvey(surveyId) {
-    await ensureGuestSession();
     await request(`/api/surveys/${encodeURIComponent(surveyId)}/publish`, { method: "POST" });
     return this.getSurvey(surveyId);
   },
 
   async changeSurveyStatus(surveyId, status) {
-    await ensureGuestSession();
     await request(`/api/surveys/${encodeURIComponent(surveyId)}/${status === "closed" ? "close" : "reopen"}`, {
       method: "POST",
       body: status === "open" ? JSON.stringify({}) : undefined,
@@ -158,14 +148,12 @@ export const httpSaywideApi: SaywideApi = {
   },
 
   async listReports(surveyId) {
-    await ensureGuestSession();
     return (await request<{ items: ReportSummary[]; nextCursor: string | null }>(
       `/api/surveys/${encodeURIComponent(surveyId)}/reports`,
     )).items;
   },
 
   async createReport(surveyId, instruction) {
-    await ensureGuestSession();
     return request<CreateReportResponse>(`/api/surveys/${encodeURIComponent(surveyId)}/reports`, {
       method: "POST",
       headers: { "Idempotency-Key": crypto.randomUUID() },
@@ -174,7 +162,6 @@ export const httpSaywideApi: SaywideApi = {
   },
 
   async getReport(reportId) {
-    await ensureGuestSession();
     return request<ReportResult>(`/api/reports/${encodeURIComponent(reportId)}`);
   },
 
@@ -235,15 +222,16 @@ export const httpSaywideApi: SaywideApi = {
     return { submittedAt: result.submittedAt };
   },
 
-  async register() {
-    return unavailable("Accounts");
+  async register(email, password) {
+    await this.continueAsGuest();
+    registerResponseSchema.parse(await request("/api/auth/register", { method: "POST", body: JSON.stringify({ email, password }) }));
   },
 
-  async login() {
-    return unavailable("Accounts");
+  async login(email, password) {
+    return loginResponseSchema.parse(await request("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }));
   },
 
   async claimGuestSurveys() {
-    return unavailable("Accounts");
+    return claimGuestResponseSchema.parse(await request("/api/auth/claim-guest", { method: "POST", body: JSON.stringify({ confirm: true }) }));
   },
 };

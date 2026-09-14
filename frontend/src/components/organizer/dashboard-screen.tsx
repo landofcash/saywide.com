@@ -1,11 +1,12 @@
 "use client";
 
 import type { SurveyStatus, SurveySummary } from "@saywide/contracts";
-import { ArrowRight, Clock3, MessageSquare, Plus, ShieldCheck } from "lucide-react";
+import { ArrowRight, ChevronDown, Clock3, MessageSquare, Plus, TriangleAlert, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
+import { useOrganizerSession } from "@/components/organizer/organizer-session";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ type Filter = "all" | SurveyStatus;
 const filters: Filter[] = ["all", "draft", "open", "closed", "archived"];
 
 export function DashboardScreen() {
+  const session = useOrganizerSession()?.session;
   const [surveys, setSurveys] = useState<SurveySummary[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
   const [loading, setLoading] = useState(true);
@@ -39,20 +41,33 @@ export function DashboardScreen() {
         <Button asChild variant="accent" size="lg"><Link href="/create"><Plus className="size-5" /> New survey</Link></Button>
       </div>
 
-      {apiCapabilities.accounts && <Card className="mt-8 flex flex-col gap-4 border-l-4 border-l-[var(--coral)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-3">
-          <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-[var(--mint-soft)]"><ShieldCheck className="size-5 text-emerald-800" /></span>
-          <div><p className="font-bold">These surveys are saved to this browser</p><p className="mt-1 text-sm text-emerald-950/70">Create an account when you want recovery and access from another device.</p></div>
-        </div>
-        <Button asChild variant="secondary" size="sm"><Link href="/account/create">Protect my surveys</Link></Button>
+      {apiCapabilities.accounts && session?.workspace?.kind === "guest" && <Card className="mt-8 border-amber-200 bg-amber-50 p-4 shadow-none sm:p-5">
+        <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-md font-bold focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--coral)] [&::-webkit-details-marker]:hidden">
+            <TriangleAlert className="size-5 shrink-0 text-amber-700" aria-hidden="true" />
+            <span className="flex-1">Keep access to your surveys.</span>
+            <ChevronDown className="size-4 shrink-0 text-[var(--muted)] transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
+          </summary>
+          <div className="pt-2 sm:pl-8">
+            <p className="max-w-2xl text-sm leading-6 text-amber-950/80">Create an account to keep access to your surveys. Guest access is linked to this browser. If the browser is reset or its data is cleared, you will permanently lose access to them.</p>
+            <Button asChild variant="secondary" size="sm" className="mt-4 w-full sm:w-auto"><Link href="/account/create"><UserPlus className="size-4" aria-hidden="true" />Create an account</Link></Button>
+          </div>
+        </details>
       </Card>}
 
-      <div className="mt-8 flex flex-wrap gap-1.5" aria-label="Filter surveys">
-        {filters.map((item) => (
-          <button key={item} onClick={() => setFilter(item)} className={`min-h-8 rounded-md border px-3 text-xs font-semibold capitalize ${filter === item ? "border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white text-[var(--muted)]"}`}>
-            {item}
-          </button>
-        ))}
+      {session?.workspace?.kind === "registered" && session.guestSurveyCount > 0 && <Card className="mt-8 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm">This browser also has {session.guestSurveyCount} guest {session.guestSurveyCount === 1 ? "survey" : "surveys"}.</p>
+        <Button asChild variant="secondary" size="sm"><Link href="/account/claim?next=%2Fdashboard">Move guest surveys</Link></Button>
+      </Card>}
+
+      <div className="mt-8 overflow-x-auto pb-1">
+        <div role="group" aria-label="Filter surveys" className="flex min-w-max w-full sm:inline-flex sm:w-auto">
+          {filters.map((item) => (
+            <button key={item} type="button" aria-pressed={filter === item} onClick={() => setFilter(item)} className={`relative -ml-px min-h-9 flex-1 border sm:flex-none px-3 text-xs font-semibold capitalize first:ml-0 first:rounded-l-lg last:rounded-r-lg focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--coral)] ${filter === item ? "z-[1] border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white text-[var(--muted)] hover:bg-[var(--mint-soft)]"}`}>
+              {item}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (

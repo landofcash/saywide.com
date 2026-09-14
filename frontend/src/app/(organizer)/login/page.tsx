@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { entryUrl } from "@/lib/organizer-navigation";
 
-import { LoginScreen } from "@/components/organizer/account-screens";
-import { requireDemoMode } from "@/lib/require-demo-mode";
-
-export const metadata: Metadata = { title: "Sign in" };
-
-export default function LoginPage() {
-  requireDemoMode();
-  return <LoginScreen />;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const query = await searchParams;
+  redirect(`${entryUrl(query.next)}#sign-in`);
 }

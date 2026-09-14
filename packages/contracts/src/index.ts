@@ -1,5 +1,31 @@
 import { z } from "zod";
 
+const emailSchema = z.string().trim().toLowerCase().email().max(254);
+export const registerInputSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(8).max(128),
+}).strict();
+export const loginInputSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1).max(128),
+}).strict();
+export const claimGuestInputSchema = z.object({ confirm: z.boolean() }).strict();
+export const organizerSessionSchema = z.object({
+  workspace: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("guest"), createdAt: z.string().datetime() }),
+    z.object({ kind: z.literal("registered"), createdAt: z.string().datetime(), email: z.string() }),
+  ]).nullable(),
+  guestSurveyCount: z.number().int().nonnegative(),
+});
+export type OrganizerSession = z.infer<typeof organizerSessionSchema>;
+export const loginResponseSchema = z.object({
+  workspace: z.object({ kind: z.literal("registered") }),
+  guestWorkspacePending: z.boolean(),
+});
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export const registerResponseSchema = z.object({ workspace: z.object({ kind: z.literal("registered") }) });
+export const claimGuestResponseSchema = z.object({ transferredSurveyCount: z.number().int().nonnegative() });
+
 export const draftSurveyFromGoalInputSchema = z.object({
   transcript: z.string().trim().min(12).max(12000),
 }).strict();

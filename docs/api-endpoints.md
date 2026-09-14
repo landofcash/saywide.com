@@ -15,7 +15,8 @@ submission. The minimal direct browser-to-Amazon Transcribe authorization route
 is also implemented. Report list, request, and polling routes run the bounded
 Strands report workflow and persist privacy-safe progress records. The SSE event
 route remains a target contract; the current frontend polls report status.
-Account and survey-generation agent routes remain unimplemented.
+Account registration, login, logout, session inspection, and explicit guest claiming
+are implemented. Survey generation uses `/api/organizer/draft-survey`.
 
 The production API origin is intended to be `https://api.saywide.com`. Paths below are relative to that origin. The public participant page remains on the frontend at `https://saywide.com/s/{publicToken}` and loads its data from this API.
 
@@ -94,6 +95,7 @@ Common status codes:
 | Method | Path | Access | Description |
 |---|---|---|---|
 | `GET` | `/api/health` | Public | Report backend readiness without exposing configuration. |
+| `GET` | `/api/auth/session` | Optional organizer cookies | Inspect the active workspace and pending guest-survey count without creating a workspace. |
 | `POST` | `/api/organizer/guest-session` | Public/guest cookie | Create or restore a browser-bound guest workspace. |
 | `GET` | `/api/organizer/surveys` | Organizer | List surveys owned by the current workspace or account. |
 | `POST` | `/api/auth/register` | Guest organizer | Promote the current guest workspace to a new account. |
@@ -132,16 +134,37 @@ Returns backend readiness for Railway health checks.
 
 ## 5. Organizer access and account endpoints
 
+### `GET /api/auth/session`
+
+Returns `{ workspace, guestSurveyCount }` with `Cache-Control: no-store`.
+`workspace` is null for an anonymous visitor, `{ kind: "guest", createdAt }` for
+a guest, or `{ kind: "registered", createdAt, email }` for a registered organizer.
+A valid account takes precedence over a guest cookie. `guestSurveyCount` counts
+surveys belonging to the valid guest cookie, including when an account is active.
+Expired/revoked credentials provide no identity. No cookie or workspace is created.
+
+Account responses never include password hashes, credential hashes, or raw tokens.
+All account mutations require an allowed Origin. The account cookie is
+`saywide_account`, host-only, HttpOnly, SameSite=Lax, and Secure in production;
+its absolute lifetime defaults to 30 days via `ACCOUNT_SESSION_DAYS`.
+Passwords accept 8–128 characters on registration and use Argon2id. Login permits
+1–128 characters for validation and returns generic incorrect-credential errors.
+Email is trimmed and lowercased. Registration is limited to 5 attempts/IP/hour;
+login to 20 attempts/IP/15 minutes and 10 failed attempts/email/15 minutes.
+Email counters are bounded, process-local, and do not replace a shared limiter
+when running multiple backend replicas.
+
 ### `POST /api/organizer/guest-session`
 
 Creates the first browser-bound guest organizer workspace or restores the workspace represented by an existing valid guest cookie.
 
 - **Authentication:** Existing guest cookie is optional. A valid account session takes precedence and prevents accidental creation of another guest workspace.
 - **Request:** No body.
-- **Success:** `201` when created or `200` when restored. Returns `{ workspace: { kind, recoveryRisk, createdAt } }` and sets or refreshes the guest cookie.
+- **Success:** `201` when created or `200` when restored. Returns `{ workspace: { kind, recoveryRisk, createdAt } }` and sets or refreshes the guest cookie. A valid account instead returns its workspace with `200` and creates no guest cookie. Responses are not cached.
 - **State changes:** Inserts `organizer` and `organizer_credential` records only when no valid organizer context exists.
 - **Failures:** `429 GUEST_CREATION_LIMITED` or `503 DEPENDENCY_UNAVAILABLE`.
 - **Rules:** The response never exposes the raw organizer ID or credential. The operation is idempotent for a valid guest cookie.
+- **Rate limit:** 10 new workspaces per IP per hour. Requests with a valid organizer session are exempt so repeated guest continuation can restore the workspace.
 
 ### `GET /api/organizer/surveys`
 
@@ -182,7 +205,7 @@ Transfers every survey from the current guest workspace into the signed-in regis
 - **Request:** `{ confirm: true }` to make the ownership transfer explicit.
 - **Success:** `200` with `{ transferredSurveyCount }`; atomically transfers surveys, marks the guest organizer as merged, revokes its credentials, and clears the guest cookie.
 - **Failures:** `401 AUTH_REQUIRED`, `409 CLAIM_NOT_AVAILABLE`, or `422 CONFIRMATION_REQUIRED`.
-- **Rules:** The transfer, merge state, credential revocation, and audit state commit in one transaction or roll back together.
+- **Rules:** Survey ownership, merge state, and credential revocation commit in one transaction or roll back together. Registration/claim lock organizer rows; organizer writes lock and revalidate the credential in their transaction. Existing survey IDs, participant links, answers, and reports remain intact. Idempotency records stay in their original caller scope; clients do not replay mutations across account changes.
 
 ### `POST /api/auth/logout`
 

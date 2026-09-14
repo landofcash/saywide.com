@@ -1,4 +1,6 @@
 import type {
+  OrganizerSession,
+  LoginResponse,
   GeneratedSurveyDraft,
   PolishSurveyTextInput,
   PolishSurveyTextResponse,
@@ -17,6 +19,9 @@ import type {
 } from "@saywide/contracts";
 
 export interface SaywideApi {
+  getSession(): Promise<OrganizerSession>;
+  continueAsGuest(): Promise<void>;
+  logout(): Promise<void>;
   createOrganizerTranscriptionSession(): Promise<TranscriptionSessionResponse>;
   polishSurveyText(input: PolishSurveyTextInput): Promise<PolishSurveyTextResponse>;
   listSurveys(): Promise<SurveySummary[]>;
@@ -36,7 +41,7 @@ export interface SaywideApi {
   saveAnswer(publicToken: string, questionId: string, answer: string): Promise<void>;
   submitResponse(publicToken: string): Promise<{ submittedAt: string }>;
   register(email: string, password: string): Promise<void>;
-  login(email: string, password: string): Promise<{ hasGuestSurveys: boolean }>;
+  login(email: string, password: string): Promise<LoginResponse>;
   claimGuestSurveys(): Promise<{ transferredSurveyCount: number }>;
 }
 

@@ -4,6 +4,7 @@ import type { AppConfig } from "../config.js";
 import { AppError } from "../errors.js";
 
 export const GUEST_COOKIE = "saywide_guest";
+export const ACCOUNT_COOKIE = "saywide_account";
 
 export function requireAllowedOrigin(request: FastifyRequest, config: AppConfig): void {
   const origin = request.headers.origin;

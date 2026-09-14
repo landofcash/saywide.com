@@ -8,10 +8,10 @@ import type { SaywideService } from "../services/saywide-service.js";
 import type { SurveyTextPolisher } from "../services/survey-text-polisher.js";
 import type { SurveyDraftGenerator } from "../services/survey-draft-generator.js";
 import type { TranscriptionSessionSigner } from "../services/transcribe-session-signer.js";
-import { GUEST_COOKIE, requireAllowedOrigin } from "./helpers.js";
+import { requireAllowedOrigin } from "./helpers.js";
 
 export function organizerWritingRoutes(
-  service: Pick<SaywideService, "requireGuest">,
+  service: Pick<SaywideService, "requireOrganizer">,
   signer: TranscriptionSessionSigner,
   polisher: SurveyTextPolisher,
   config: AppConfig,
@@ -21,7 +21,7 @@ export function organizerWritingRoutes(
     const typed = app.withTypeProvider<ZodTypeProvider>();
     typed.addHook("preHandler", async (request) => {
       requireAllowedOrigin(request, config);
-      await service.requireGuest(request.cookies[GUEST_COOKIE]);
+      await service.requireOrganizer(request.cookies);
     });
 
     typed.post("/api/organizer/transcription-sessions", {

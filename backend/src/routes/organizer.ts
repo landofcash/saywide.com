@@ -17,9 +17,18 @@ export function organizerRoutes(service: SaywideService, config: AppConfig): Fas
     const typed = app.withTypeProvider<ZodTypeProvider>();
 
     typed.post("/api/organizer/guest-session", {
-      config: { rateLimit: { max: 10, timeWindow: "1 hour" } },
+      config: { rateLimit: {
+        max: 10,
+        timeWindow: "1 hour",
+        // The entry page is shown on every guest visit to Dashboard. Restoring
+        // a valid workspace must not consume the anonymous-creation allowance.
+        allowList: async (request) => (await service.auth.session(request.cookies)).workspace !== null,
+      } },
     }, async (request, reply) => {
       requireAllowedOrigin(request, config);
+      reply.header("Cache-Control", "no-store");
+      const session = await service.auth.session(request.cookies);
+      if (session.workspace?.kind === "registered") return reply.send({ workspace: session.workspace });
       const guest = await service.restoreOrCreateGuest(request.cookies[GUEST_COOKIE]);
       reply.setCookie(GUEST_COOKIE, guest.rawToken, {
         path: "/",
@@ -40,7 +49,7 @@ export function organizerRoutes(service: SaywideService, config: AppConfig): Fas
     typed.get("/api/organizer/surveys", {
       schema: { querystring: listQuerySchema },
     }, async (request) => {
-      const guest = await service.requireGuest(request.cookies[GUEST_COOKIE]);
+      const guest = await service.requireOrganizer(request.cookies);
       const items = await service.listSurveys(guest.organizerId, request.query.status, request.query.limit);
       return { items, nextCursor: null };
     });

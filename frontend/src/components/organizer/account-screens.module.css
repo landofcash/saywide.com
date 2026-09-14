@@ -1,0 +1,49 @@
+.page { min-height: 100svh; background: radial-gradient(ellipse at 50% 24%, #e4eee8 0, transparent 60%), var(--canvas); }
+.main { max-width: 512px; margin: 0 auto; padding: 40px 16px 24px; }
+.panel { padding: 36px; border: 1px solid rgb(207 214 211 / 80%); border-radius: 24px; background: var(--paper); box-shadow: 0 20px 60px -32px rgb(23 35 31 / 24%); }
+.eyebrow { display: block; margin-bottom: 16px; color: var(--coral); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.title { margin: 0; font-size: 36px; font-weight: 700; line-height: 1.08; letter-spacing: -.045em; }
+.description { margin: 16px 0 24px; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.title + .guestButton { margin-top: 24px; }
+/* Restrained adaptation of https://magicui.design/docs/components/shimmer-button. */
+.guestButton { position: relative; isolation: isolate; display: flex; width: 100%; min-height: 56px; padding: 12px 20px; align-items: center; justify-content: center; gap: 12px; overflow: hidden; border: 1px solid var(--mint); border-radius: 999px; background: var(--coral); color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px -10px rgb(40 100 81 / 45%); transition: background-color 180ms, box-shadow 180ms; }
+.guestButton:hover { background: var(--coral-dark); box-shadow: 0 10px 24px -10px rgb(40 100 81 / 55%); }
+.guestButton > svg { width: 19px; height: 19px; flex-shrink: 0; }
+.guestButton > span:not(.shimmer), .guestButton > svg { position: relative; }
+.shimmer { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 14%) 48%, transparent 66%); transform: translateX(-140%); animation: shimmer 5.5s ease-in-out infinite; }
+.guestButton:disabled { cursor: wait; opacity: .65; }
+.guestHint { margin: 12px 0 0; font-size: 12px; line-height: 1.65; color: var(--muted); }
+.divider { display: flex; align-items: center; gap: 14px; margin: 26px 0 22px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.divider::before, .divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+.fields { display: grid; gap: 18px; padding: 0; border: 0; margin: 0; min-width: 0; }
+.password { position: relative; }
+.password button { position: absolute; right: 2px; top: 2px; display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+.password svg { width: 18px; height: 18px; }
+.passwordHint { margin: -8px 0 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+.signIn { width: 100%; min-height: 48px; border-radius: 12px; }
+.alternative { margin: 22px 0 0; font-size: 13px; text-align: center; color: var(--muted); line-height: 1.7; }
+.alternative a { color: var(--coral); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.footer { margin: 20px 0 0; text-align: center; font-size: 12px; color: var(--muted); }
+.error { margin: 12px 0 0; padding: 12px; border-radius: 8px; border: 1px solid #fecaca; background: #fff7f7; color: #991b1b; font-size: 13px; line-height: 1.6; }
+.fields .error { margin: 0; }
+.icon { display: grid; width: 44px; height: 44px; place-items: center; margin-bottom: 20px; border-radius: 14px; background: var(--mint-soft); color: var(--coral); }
+.icon svg { width: 22px; height: 22px; }
+.topBadge { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; color: var(--ink); font-size: 18px; font-weight: 700; letter-spacing: -.02em; }
+.topBadge .icon { flex: 0 0 auto; margin: 0; }
+.notice { display: flex; align-items: flex-start; gap: 10px; padding: 14px; margin: 0 0 22px; border-radius: 12px; background: var(--mint-soft); color: var(--coral-dark); font-size: 13px; line-height: 1.6; }
+.notice svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+.back { display: block; padding: 12px; margin-top: 6px; text-align: center; color: var(--muted); font-size: 13px; }
+.transfer { display: grid; gap: 6px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--canvas); overflow-wrap: anywhere; }
+.transfer span { font-size: 12px; color: var(--muted); }
+.transfer strong { font-size: 15px; font-weight: 600; }
+.transfer svg { width: 18px; height: 18px; transform: rotate(90deg); color: var(--coral); margin: 8px 0; }
+.confirm { display: flex; align-items: flex-start; gap: 12px; margin: 22px 0; font-size: 13px; line-height: 1.65; cursor: pointer; }
+.confirm input { flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--coral); }
+.pending { color: var(--muted); font-size: 14px; text-align: center; }
+.spinner { animation: spin 1s linear infinite; }
+.page :is(a, button, input):focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
+@keyframes shimmer { 0%, 55% { transform: translateX(-140%); } 90%, 100% { transform: translateX(140%); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 480px) { .main { padding-top: 20px; } .panel { padding: 26px 22px; border-radius: 20px; } .title { font-size: 32px; } .eyebrow { font-size: 10px; } }
+@media (max-width: 359px) { .panel { padding: 24px 18px; } .title { font-size: 29px; } .divider { gap: 8px; font-size: 11px; } .guestButton { padding-inline: 12px; font-size: 14px; } }
+@media (prefers-reduced-motion: reduce) { .shimmer { display: none; } .spinner { animation: none; } }

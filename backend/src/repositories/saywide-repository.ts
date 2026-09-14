@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { lockOrganizerAccess, type OrganizerAccess } from "../services/auth-service.js";
 
 import type {
   PublicSurvey,
@@ -226,8 +227,10 @@ export class SaywideRepository {
     organizerId: string,
     surveyId: string,
     input: SurveyDraftInput,
+    access: OrganizerAccess,
   ): Promise<{ kind: "updated"; survey: SurveyDetail } | { kind: "not_found" } | { kind: "not_editable" }> {
     return this.transaction(async (client) => {
+      await lockOrganizerAccess(client, access);
       const locked = await client.query<{ status: SurveyStatus; response_count: string }>(`
         SELECT s.status, (SELECT count(*) FROM response_session rs WHERE rs.survey_id = s.id) AS response_count
         FROM survey s WHERE s.id = $1 AND s.organizer_id = $2 FOR UPDATE
@@ -251,14 +254,17 @@ export class SaywideRepository {
     });
   }
 
-  async setSurveyStatus(organizerId: string, surveyId: string, status: "open" | "closed"): Promise<SurveyDetail | null> {
-    const result = await this.pool.query(`
-      UPDATE survey SET status = $3, updated_at = now()
-      WHERE id = $1 AND organizer_id = $2
-      RETURNING id
-    `, [surveyId, organizerId, status]);
-    if (result.rowCount === 0) return null;
-    return this.getSurveyDetail(organizerId, surveyId);
+  async setSurveyStatus(organizerId: string, surveyId: string, status: "open" | "closed", access: OrganizerAccess): Promise<SurveyDetail | null> {
+    return this.transaction(async (client) => {
+      await lockOrganizerAccess(client, access);
+      const result = await client.query(`
+        UPDATE survey SET status = $3, updated_at = now()
+        WHERE id = $1 AND organizer_id = $2
+        RETURNING id
+      `, [surveyId, organizerId, status]);
+      if (result.rowCount === 0) return null;
+      return this.getSurveyDetail(organizerId, surveyId, client);
+    });
   }
 
   async getSurveySummary(organizerId: string, surveyId: string): Promise<SurveySummaryResponse | null> {

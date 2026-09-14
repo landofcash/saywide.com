@@ -28,6 +28,7 @@ const config: AppConfig = {
   frontendOrigins: ["http://localhost:3000"],
   tokenDerivationSecret: "test-only-derivation-secret-with-32-characters",
   guestCredentialDays: 365,
+  accountSessionDays: 30,
   responseSessionMinutes: 60,
   modelProvider: "openai",
   openAiModelId: "gpt-5.6-luna",

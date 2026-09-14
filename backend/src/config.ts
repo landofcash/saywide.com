@@ -11,6 +11,7 @@ const environmentSchema = z.object({
   FRONTEND_ORIGINS: z.string().default("http://localhost:3000"),
   TOKEN_DERIVATION_SECRET: z.string().min(32),
   GUEST_CREDENTIAL_DAYS: z.coerce.number().int().min(1).max(730).default(365),
+  ACCOUNT_SESSION_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   RESPONSE_SESSION_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
   MODEL_PROVIDER: z.enum(["openai", "bedrock"]).default("openai"),
   OPENAI_MODEL: z.string().trim().min(1).default("gpt-5.6-luna"),
@@ -38,6 +39,7 @@ export interface AppConfig {
   frontendOrigins: string[];
   tokenDerivationSecret: string;
   guestCredentialDays: number;
+  accountSessionDays: number;
   responseSessionMinutes: number;
   modelProvider: "openai" | "bedrock";
   openAiModelId: string;
@@ -63,6 +65,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     frontendOrigins: parsed.FRONTEND_ORIGINS.split(",").map((origin) => origin.trim().replace(/\/$/, "")).filter(Boolean),
     tokenDerivationSecret: parsed.TOKEN_DERIVATION_SECRET,
     guestCredentialDays: parsed.GUEST_CREDENTIAL_DAYS,
+    accountSessionDays: parsed.ACCOUNT_SESSION_DAYS,
     responseSessionMinutes: parsed.RESPONSE_SESSION_MINUTES,
     modelProvider: parsed.MODEL_PROVIDER,
     openAiModelId: parsed.OPENAI_MODEL,

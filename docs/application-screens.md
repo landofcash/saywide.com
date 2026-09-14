@@ -10,7 +10,7 @@ The interface is mobile-first for participants and responsive for organizers. Vo
 
 ## 2. Experience principles
 
-- A first-time visitor lands on the marketing homepage and can open the dashboard without an authentication gate.
+- Dashboard and Get started open `/start?next=/dashboard` for new visitors and returning guests. Continue as guest is the primary action; signed-in organizers skip the page.
 - Survey creation remains directly available at `/create`, with manual creation at `/surveys/new`.
 - The shortest successful organizer path is: describe goal → review survey → publish → share.
 - Participant access begins from the public link or QR code and never requires an account.
@@ -26,7 +26,8 @@ The interface is mobile-first for participants and responsive for organizers. Vo
 
 ```mermaid
 flowchart LR
-    M1[Marketing Homepage] --> O4[My Surveys]
+    M1[Marketing Homepage] --> O9[Get Started / Sign In]
+    O9 -->|Continue as guest| O4[My Surveys]
     O1[Create a Survey] --> O2[Survey Builder]
     O2 --> O3[Publish and Share]
     O3 --> O5[Survey Overview]
@@ -36,7 +37,7 @@ flowchart LR
     O5 --> O6[Create Report]
     O6 --> O7[Report Progress and Results]
     O8[Protect Your Surveys] --> O4
-    O9[Sign In] --> O4
+    O9 -->|Sign in| O4
     O9 --> O10[Claim Guest Surveys]
     O10 --> O4
 ```
@@ -64,7 +65,7 @@ flowchart LR
 | O-06 | Create Report | `/surveys/{surveyId}/reports/new` | Capture the organizer's reporting instruction and freeze the response snapshot. | Instruction editor, example prompts, eligible-response count, privacy threshold, generate button, validation and provider errors. |
 | O-07 | Report Progress and Results | `/reports/{reportId}` | Show agent progress and then the validated evidence-backed report on the same stable route. | Progress timeline, findings, counts, confidence, evidence drawers, minority views, limitations, suggested actions, Markdown download, regenerate action. |
 | O-08 | Protect Your Surveys | `/account/create` | Optionally turn the current guest workspace into a recoverable account. | Email, password, confirmation, password guidance, survey-preservation explanation, create-account button, sign-in alternative. |
-| O-09 | Sign In | `/login` | Restore a registered organizer account from another browser or begin an existing-account claim. | Email, password, sign-in button, generic errors, pending guest-workspace notice, create-survey link. |
+| O-09 | Get Started / Sign In | `/start` (`/login` redirects here) | Continue with a guest workspace or sign into an existing account. | Large guest CTA, browser-access explanation, email/password form, secondary Sign in button, registration link. |
 | O-10 | Claim Guest Surveys | `/account/claim` | Explicitly transfer surveys from the current guest workspace into the signed-in account. | Guest survey count, destination explanation, confirm checkbox, claim button, skip action, transactional success/error state. |
 
 ## 5. Organizer screen details
@@ -227,7 +228,7 @@ flowchart LR
 
 ### O-08 — Protect Your Surveys
 
-**Description:** Optional account creation for a guest who wants cross-device access and recovery. The copy frames this as protecting existing work, not as a prerequisite for using Saywide.
+**Description:** Optional account creation for a guest who wants access across devices. Password recovery and email verification are deferred. The guest count is read from the session API; there are no fixed demo counts in live screens.
 
 **Functional elements:**
 
@@ -241,28 +242,29 @@ flowchart LR
 **Behavior and transitions:**
 
 - Successful registration promotes the existing workspace and returns to O-04 without moving surveys.
-- An email that cannot create a new account routes to O-09 using generic wording; it does not confirm account existence.
+- An email that cannot create a new account shows a neutral inline error with a sign-in alternative; existing guest work remains accessible.
 - Validation errors retain the email but never the password after navigation.
 - API interaction: `POST /api/auth/register`.
 
 ### O-09 — Sign In
 
-**Description:** Restores an existing registered organizer account. It remains secondary to the first-use creation path.
+**Description:** A centered white panel on a softly shaded background. A full-width green Continue as guest button appears above a conventional sign-in form and registration link. Existing Saywide typography, Lucide icons, and a restrained shimmer treatment are reused. Mobile follows the same order with natural scrolling; reduced motion disables shimmer.
 
 **Functional elements:**
 
 - Email and password fields with show/hide password control.
-- Primary `Sign in` action.
+- Primary `Continue as guest` action, followed by a separator and secondary `Sign in` action.
 - Generic invalid-credentials and rate-limit states.
-- Pending guest-workspace notice when the current browser also holds guest surveys.
+- Short explanation that guest access is linked to this browser.
 - Links back to survey creation and account creation where appropriate.
 
 **Behavior and transitions:**
 
-- Successful login with no pending guest workspace goes to O-04.
+- Continue as guest restores an existing guest workspace or creates one, then goes to O-04. Returning guests see this choice again when clicking Dashboard/Get started; direct reloads of accessible organizer pages continue normally.
+- Successful login with no pending guest workspace goes to O-04. Recognized organizer destinations in `next` are preserved through entry, registration, and claiming; unknown or external destinations fall back to `/dashboard`.
 - Successful login with pending guest surveys goes to O-10; it never transfers them automatically.
 - Password reset and email verification are outside the MVP and are not shown as non-working controls.
-- API interaction: `POST /api/auth/login`.
+- API interactions: `GET /api/auth/session`, `POST /api/organizer/guest-session`, and `POST /api/auth/login`. Session cookies stay on the API host. Logout revokes the current account session and returns to the entry page without deleting surveys.
 
 ### O-10 — Claim Guest Surveys
 
@@ -270,7 +272,7 @@ flowchart LR
 
 **Functional elements:**
 
-- Guest survey count and destination account explanation without echoing unnecessary email data.
+- Actual guest survey count and destination account email, followed by explicit confirmation.
 - Confirmation checkbox describing the transfer and guest credential revocation.
 - Primary `Move surveys to my account` action.
 - Secondary `Not now` action that keeps both sessions intact.
@@ -280,7 +282,7 @@ flowchart LR
 **Behavior and transitions:**
 
 - Success navigates to O-04 with the transferred surveys visible.
-- Failure leaves ownership and credentials unchanged.
+- Failure leaves ownership and credentials unchanged. Not now sends no claim request and leaves a Move guest surveys action on the registered dashboard.
 - The action requires both the guest and account cookies plus explicit confirmation.
 - API interaction: `POST /api/auth/claim-guest`.
 

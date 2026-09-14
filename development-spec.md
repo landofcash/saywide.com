@@ -167,8 +167,8 @@ Suggested survey:
 
 ### 9.1 Organizer access and ownership
 
-- Do not show a registration or login wall before the first survey is created.
-- When first-time creation begins, create a guest organizer workspace and issue an opaque, high-entropy guest access credential.
+- Dashboard and Get started show the guest-first `/start` page to new visitors and returning guests. Continue as guest is the primary action and requires no registration; signed-in organizers skip the page.
+- Create or restore the guest workspace when Continue as guest is selected, or immediately before a new-account registration submission. Merely opening the entry page does not create a workspace.
 - Treat the guest credential as a bearer secret, never as a public identifier. Store only its hash on the server and never log the raw value.
 - Store the guest credential in a host-only `Secure`, `HttpOnly`, `SameSite=Lax` cookie set by the backend API. Browser local storage may contain only non-secret UI metadata, not the raw organizer credential.
 - Link every survey created in that browser guest workspace to the same guest `organizer_id`, so the organizer can return and see all of them.
@@ -933,7 +933,7 @@ These defaults are settled for the MVP unless implementation evidence forces a c
 | Participant identity | None. Public capability link plus short-lived anonymous response-session token; no registration, email, login, or profile. |
 | Participant API authorization | Non-secret `sessionId` in the path plus a short-lived bearer token in the `Authorization` header; store only the token hash server-side and keep the raw token in browser memory. |
 | Duplicate deterrence | Soft per-survey browser local-storage marker, session replay protection, and server rate/cost limits; accept incognito, cleared-storage, and other-device bypass. |
-| Organizer first use | Guest organizer workspace with no registration or login wall. |
+| Organizer first use | Guest-first entry page; Continue as guest is primary, with optional email/password sign-in and registration below. |
 | Guest persistence | Opaque browser credential in a host-only `Secure`, `HttpOnly`, `SameSite=Lax` API cookie; only its hash is stored server-side. |
 | Organizer account | Optional unique email/password account with secure password hashing and revocable account sessions. |
 | Guest upgrade | Promote a guest to a new account without changing survey ownership; require login and an explicit atomic claim when merging into an existing account. |

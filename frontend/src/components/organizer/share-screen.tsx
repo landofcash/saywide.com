@@ -7,6 +7,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 
 import { OrganizerShell } from "@/components/organizer/organizer-shell";
+import { useOrganizerSession } from "@/components/organizer/organizer-session";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { api, apiCapabilities } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
 export function ShareScreen({ surveyId }: { surveyId: string }) {
+  const workspace = useOrganizerSession()?.session?.workspace;
   const [survey, setSurvey] = useState<SurveyDetail | null>(null);
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -74,7 +76,7 @@ export function ShareScreen({ surveyId }: { surveyId: string }) {
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <Button asChild><Link href={`/surveys/${surveyId}`}>Survey overview</Link></Button>
           <Button asChild variant="secondary"><Link href="/dashboard"><LayoutDashboard className="size-4" /> My surveys</Link></Button>
-          {apiCapabilities.accounts && <Button asChild variant="ghost"><Link href="/account/create"><ShieldCheck className="size-4" /> Protect surveys</Link></Button>}
+          {apiCapabilities.accounts && workspace?.kind === "guest" && <Button asChild variant="ghost"><Link href={`/account/create?next=${encodeURIComponent(`/surveys/${surveyId}/share`)}`}><ShieldCheck className="size-4" /> Protect surveys</Link></Button>}
         </div>
       </div>
     </OrganizerShell>

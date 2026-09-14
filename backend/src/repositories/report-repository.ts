@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { lockOrganizerAccess, type OrganizerAccess } from "../services/auth-service.js";
 
 import type { Report, ReportSummary, ReportActivity } from "@saywide/contracts";
 import type { ReportHookEvent } from "../services/report-hooks.js";
@@ -138,6 +139,7 @@ export class ReportRepository {
   }
 
   async createRequest(values: {
+    access: OrganizerAccess;
     organizerId: string;
     surveyId: string;
     instruction: string;
@@ -147,6 +149,7 @@ export class ReportRepository {
     idempotency?: { keyHash: Buffer; requestHash: Buffer; expiresAt: Date };
   }): Promise<{ requestId: string; snapshotAt: Date; eligibleResponseCount: number } | { kind: "not_found" | "already_running" | "too_few" | "too_many" | "idempotency_reused" | "idempotency_unavailable"; count?: number; minimum?: number }> {
     return this.transaction(async (client) => {
+      await lockOrganizerAccess(client, values.access);
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`report:${values.surveyId}`]);
       const databaseTime = await client.query<{ snapshot_at: Date }>("SELECT clock_timestamp() AS snapshot_at");
       const snapshotAt = databaseTime.rows[0].snapshot_at;

@@ -77,7 +77,7 @@ export function MarketingHomepage() {
               </li>
             ))}
           </ul>
-          <Link className={`${styles.button} ${styles.shimmerButton} mt-8`} href="/dashboard">
+          <Link className={`${styles.button} ${styles.shimmerButton} mt-8`} href="/start?next=%2Fdashboard">
             <span className={styles.shimmerTrack} aria-hidden="true">
               <span className={styles.shimmerSlide}>
                 <span className={styles.shimmerSpark} />

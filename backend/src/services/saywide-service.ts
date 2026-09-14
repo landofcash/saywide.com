@@ -16,6 +16,7 @@ import type {
 import type { AppConfig } from "../config.js";
 import { AppError, notFound } from "../errors.js";
 import { SaywideRepository } from "../repositories/saywide-repository.js";
+import { AuthService, lockOrganizerAccess, type OrganizerAccess } from "./auth-service.js";
 import { addDays, addMinutes, createBearerToken, createPublicToken, deriveResponseToken, hashJson, hashValue } from "../security.js";
 
 const IDEMPOTENCY_HOURS = 24;
@@ -32,6 +33,7 @@ export class SaywideService {
   constructor(
     private readonly repository: SaywideRepository,
     private readonly config: AppConfig,
+    readonly auth: AuthService,
   ) {}
 
   async health(): Promise<void> {
@@ -65,11 +67,8 @@ export class SaywideService {
     };
   }
 
-  async requireGuest(rawCookie: string | undefined): Promise<{ organizerId: string }> {
-    if (!rawCookie) throw new AppError(401, "ORGANIZER_AUTH_REQUIRED", "Organizer access is required.");
-    const guest = await this.repository.findGuestByTokenHash(hashValue(rawCookie));
-    if (!guest) throw new AppError(401, "ORGANIZER_AUTH_REQUIRED", "Organizer access is required.");
-    return { organizerId: guest.organizer_id };
+  async requireOrganizer(cookies: Record<string, string | undefined>): Promise<OrganizerAccess> {
+    return this.auth.requireOrganizer(cookies);
   }
 
   async listSurveys(organizerId: string, status: SurveyStatus | undefined, limit: number): Promise<SurveySummary[]> {
@@ -80,13 +79,14 @@ export class SaywideService {
     return await this.repository.getSurveyDetail(organizerId, surveyId) ?? (() => { throw notFound("SURVEY_NOT_FOUND"); })();
   }
 
-  async createSurvey(organizerId: string, input: SurveyDraftInput, idempotencyKey?: string): Promise<SurveyDetail> {
+  async createSurvey(organizerId: string, input: SurveyDraftInput, idempotencyKey: string | undefined, access: OrganizerAccess): Promise<SurveyDetail> {
     this.assertPhaseOneSettings(input);
     const requestHash = hashJson(input);
     const keyHash = idempotencyKey ? hashValue(idempotencyKey) : null;
     const surveyId = randomUUID();
 
     return this.repository.transaction(async (client) => {
+      await lockOrganizerAccess(client, access);
       if (keyHash) {
         const lockKey = `organizer:${organizerId}:create-survey:${keyHash.toString("hex")}`;
         await this.repository.lockIdempotencyScope(client, lockKey);
@@ -120,7 +120,7 @@ export class SaywideService {
     });
   }
 
-  async updateSurvey(organizerId: string, surveyId: string, patch: SurveyPatchInput): Promise<SurveyDetail> {
+  async updateSurvey(organizerId: string, surveyId: string, patch: SurveyPatchInput, access: OrganizerAccess): Promise<SurveyDetail> {
     const current = await this.getSurvey(organizerId, surveyId);
     const input: SurveyDraftInput = {
       title: patch.title ?? current.title,
@@ -129,13 +129,13 @@ export class SaywideService {
       settings: patch.settings ?? current.settings,
     };
     this.assertPhaseOneSettings(input);
-    const result = await this.repository.updateSurvey(organizerId, surveyId, input);
+    const result = await this.repository.updateSurvey(organizerId, surveyId, input, access);
     if (result.kind === "not_found") throw notFound("SURVEY_NOT_FOUND");
     if (result.kind === "not_editable") throw new AppError(409, "SURVEY_NOT_EDITABLE", "This survey can no longer be edited.");
     return result.survey;
   }
 
-  async publishSurvey(organizerId: string, surveyId: string): Promise<SurveyDetail> {
+  async publishSurvey(organizerId: string, surveyId: string, access: OrganizerAccess): Promise<SurveyDetail> {
     const survey = await this.getSurvey(organizerId, surveyId);
     if (survey.status === "archived" || survey.status === "closed") {
       throw new AppError(409, "INVALID_SURVEY_STATE", "This survey cannot be published from its current state.");
@@ -144,28 +144,28 @@ export class SaywideService {
       throw new AppError(422, "SURVEY_NOT_PUBLISHABLE", "The survey expiry must be in the future.");
     }
     if (survey.status === "open") return survey;
-    const published = await this.repository.setSurveyStatus(organizerId, surveyId, "open");
+    const published = await this.repository.setSurveyStatus(organizerId, surveyId, "open", access);
     if (!published) throw notFound("SURVEY_NOT_FOUND");
     return published;
   }
 
-  async closeSurvey(organizerId: string, surveyId: string): Promise<SurveyDetail> {
+  async closeSurvey(organizerId: string, surveyId: string, access: OrganizerAccess): Promise<SurveyDetail> {
     const survey = await this.getSurvey(organizerId, surveyId);
     if (survey.status === "closed") return survey;
     if (survey.status !== "open") throw new AppError(409, "INVALID_SURVEY_STATE", "Only an open survey can be closed.");
-    const closed = await this.repository.setSurveyStatus(organizerId, surveyId, "closed");
+    const closed = await this.repository.setSurveyStatus(organizerId, surveyId, "closed", access);
     if (!closed) throw notFound("SURVEY_NOT_FOUND");
     return closed;
   }
 
-  async reopenSurvey(organizerId: string, surveyId: string): Promise<SurveyDetail> {
+  async reopenSurvey(organizerId: string, surveyId: string, access: OrganizerAccess): Promise<SurveyDetail> {
     const survey = await this.getSurvey(organizerId, surveyId);
     if (survey.status === "open") return survey;
     if (survey.status !== "closed") throw new AppError(409, "INVALID_SURVEY_STATE", "Only a closed survey can be reopened.");
     if (survey.expiresAt && new Date(survey.expiresAt) <= new Date()) {
       throw new AppError(422, "SURVEY_EXPIRED", "Extend the survey expiry before reopening it.");
     }
-    const reopened = await this.repository.setSurveyStatus(organizerId, surveyId, "open");
+    const reopened = await this.repository.setSurveyStatus(organizerId, surveyId, "open", access);
     if (!reopened) throw notFound("SURVEY_NOT_FOUND");
     return reopened;
   }

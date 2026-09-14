@@ -12,6 +12,8 @@ import { AppError } from "./errors.js";
 import { SaywideRepository } from "./repositories/saywide-repository.js";
 import { ReportRepository } from "./repositories/report-repository.js";
 import { healthRoutes } from "./routes/health.js";
+import { authRoutes } from "./routes/auth.js";
+import { AuthService } from "./services/auth-service.js";
 import { organizerRoutes } from "./routes/organizer.js";
 import { organizerWritingRoutes } from "./routes/organizer-writing.js";
 import { OpenAiSurveyTextPolisher, type SurveyTextPolisher } from "./services/survey-text-polisher.js";
@@ -44,7 +46,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
     logger: {
       level: options.config.logLevel,
       redact: {
-        paths: ["req.headers.authorization", "req.headers.cookie", "res.headers.set-cookie"],
+        paths: ["req.headers.authorization", "req.headers.cookie", "res.headers.set-cookie", "req.body.password"],
         censor: "[REDACTED]",
       },
     },
@@ -69,7 +71,11 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
   app.register(databasePlugin, { config: options.config, pool: options.pool });
 
   app.register(async (scope) => {
-    const service = new SaywideService(new SaywideRepository(scope.db), options.config);
+    scope.addHook("onRequest", async (request, reply) => {
+      if (/^\/api\/(organizer|surveys|reports)(\/|\?|$)/.test(request.url)) reply.header("Cache-Control", "private, no-store");
+    });
+    const auth = new AuthService(scope.db, options.config);
+    const service = new SaywideService(new SaywideRepository(scope.db), options.config, auth);
     const transcriptionSessionSigner = options.transcriptionSessionSigner
       ?? new AwsTranscriptionSessionSigner(options.config);
     const reportService = new ReportService(
@@ -88,6 +94,7 @@ export function buildApp(options: BuildAppOptions): FastifyInstance {
       }
     });
     scope.register(healthRoutes(service));
+    scope.register(authRoutes(auth, options.config));
     scope.register(organizerRoutes(service, options.config));
     scope.register(organizerWritingRoutes(service, transcriptionSessionSigner,
       options.surveyTextPolisher ?? new OpenAiSurveyTextPolisher(options.config), options.config,

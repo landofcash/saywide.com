@@ -4,6 +4,7 @@ packages:
   - packages/*
 
 allowBuilds:
+  argon2: true
   better-sqlite3: false
   esbuild: true
   node-llama-cpp: false

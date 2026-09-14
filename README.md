@@ -11,7 +11,14 @@ participant voice path: the backend issues a short-lived signed URL and the
 browser streams microphone PCM directly to Amazon Transcribe. The backend runs
 the evidence-backed report workflow through Strands with OpenAI by default;
 the live `/create` page also turns recorded descriptions into editable AI survey
-drafts. Accounts remain available in the synthetic frontend demo only.
+drafts. Email/password accounts support registration, login, logout, and explicit
+transfer of guest surveys into an existing account.
+
+Dashboard and Get started open `/start` for new visitors and returning guests.
+Continue as guest creates or restores the browser workspace; signed-in organizers
+go directly to their dashboard. Signup preserves existing guest surveys. Login
+offers a separate confirmation before moving guest work into an existing account.
+Email verification and forgotten-password recovery are not implemented.
 
 On `/create`, tap the microphone to record and tap stop to generate. Transcripts
 stay hidden and in memory; the backend returns validated title, introduction,
@@ -39,6 +46,9 @@ Fastify API. Open <http://localhost:3000>; the API listens on
 The root route is the marketing homepage. Use <http://localhost:3000/create>
 for AI-assisted survey creation, or <http://localhost:3000/surveys/new> for the
 manual survey builder.
+Organizer pages require a guest or account session. Without one, they open the
+entry page and return to the requested page after a choice. Participant links
+remain anonymous and open directly.
 For voice testing, log in with the AWS CLI profile named by `AWS_PROFILE` in
 `backend/.env` (the example uses `saywide.com`). The identity needs only
 `transcribe:StartStreamTranscriptionWebSocket` in the configured `AWS_REGION`.
@@ -50,6 +60,16 @@ accepts up to 30 submitted response sessions per frozen snapshot.
 Keep `NEXT_PUBLIC_USE_MOCK_API=true` for the complete synthetic UI demo. Its
 seeded participant survey is available at
 <http://localhost:3000/s/team-voices>.
+
+Account cookies default to a 30-day absolute lifetime (`ACCOUNT_SESSION_DAYS` in
+the backend environment). Guest cookies retain their renewable 365-day default.
+Passwords use Argon2id and require 8–128 characters. Registration and login are
+rate-limited; email failure counters are bounded and process-local, so deployment
+with multiple backend replicas requires a shared limiter. The existing database
+schema already contains the account tables; this feature adds no migration.
+Deploy backend account support before the frontend that exposes it. Keep frontend
+and API on the same site in production (for example `saywide.com` and
+`api.saywide.com`) for the host-only, Secure, HttpOnly, SameSite=Lax cookies.
 
 ## Verify
 

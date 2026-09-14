@@ -1,4 +1,5 @@
 import type {
+  OrganizerSession,
   ParticipantAnswers,
   Report,
   StartResponseInput,
@@ -11,6 +12,7 @@ import { createInitialState, type MockState } from "./mock-data";
 import type { SaywideApi } from "./types";
 
 const STATE_KEY = "saywide.mock-state.v1";
+const SESSION_KEY = "saywide.demo-session.v1";
 const RESPONSE_PREFIX = "saywide.response.";
 
 const pause = (milliseconds = 160) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -77,6 +79,20 @@ function makeSurvey(input: SurveyDraftInput, surveyId = `survey-${Date.now()}`):
 }
 
 export const mockSaywideApi: SaywideApi = {
+  async getSession() {
+    const stored = window.localStorage.getItem(SESSION_KEY);
+    const session: OrganizerSession = stored ? JSON.parse(stored) as OrganizerSession : { workspace: null, guestSurveyCount: 0 };
+    return session.workspace?.kind === "guest" ? { ...session, guestSurveyCount: readState().surveys.length } : session;
+  },
+  async continueAsGuest() {
+    const current = await this.getSession();
+    if (current.workspace) return;
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ workspace: { kind: "guest", createdAt: new Date().toISOString() }, guestSurveyCount: readState().surveys.length }));
+  },
+  async logout() {
+    const current = await this.getSession();
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ workspace: current.guestSurveyCount ? { kind: "guest", createdAt: new Date().toISOString() } : null, guestSurveyCount: current.guestSurveyCount }));
+  },
   async createOrganizerTranscriptionSession() {
     throw new Error("Voice input needs the live API. You can continue by typing in demo mode.");
   },
@@ -252,20 +268,23 @@ export const mockSaywideApi: SaywideApi = {
   },
 
   async register(email, password) {
-    void email;
     void password;
     await pause(350);
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ workspace: { kind: "registered", email, createdAt: new Date().toISOString() }, guestSurveyCount: 0 }));
   },
 
   async login(email, password) {
-    void email;
     void password;
     await pause(350);
-    return { hasGuestSurveys: true };
+    const current = await this.getSession();
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ workspace: { kind: "registered", email, createdAt: new Date().toISOString() }, guestSurveyCount: current.guestSurveyCount }));
+    return { workspace: { kind: "registered" }, guestWorkspacePending: current.guestSurveyCount > 0 };
   },
 
   async claimGuestSurveys() {
     await pause(400);
-    return { transferredSurveyCount: readState().surveys.length };
+    const current = await this.getSession();
+    window.localStorage.setItem(SESSION_KEY, JSON.stringify({ ...current, guestSurveyCount: 0 }));
+    return { transferredSurveyCount: current.guestSurveyCount };
   },
 };
