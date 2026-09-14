@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 <img src="frontend/public/images/saywide-logo-1.png" alt="Saywide logo" width="80" />
 
@@ -6,7 +6,7 @@
 
 **EVERYONE HAS SOMETHING TO SAY**
 
-Build a survey with AI. Collect answers by voice. Turn every voice into better decisions.
+Build a survey with AI. Collect answers by voice. Saywide's agent turns voices into better decisions.
 
 [Visit Saywide](https://saywide.com) · [How it works](#how-it-works) · [Run locally](#local-development)
 
@@ -20,17 +20,19 @@ Build a survey with AI. Collect answers by voice. Turn every voice into better d
 
 **Two hundred messages in the group chat. A yes-or-no poll. Still no decision.**
 
-Communities have plenty to say, but busy chats bury concerns and simple polls miss the reasons behind an answer. Organizers are left piecing it all together.
+Busy chats bury concerns, and simple polls miss the reasons behind an answer. Community organizers are left reading messages, grouping repeated ideas, counting support, and writing summaries before anyone can act.
 
-**Saywide turns those responses into structured, evidence-backed reports.** Ask what matters, explore a question or hypothesis, and see which ideas people support. The goal: faster decisions and stronger, happier communities.
+**Saywide takes on that work.** People share their views in their own words. The agent turns their responses into structured, evidence-backed reports, helping organizers identify shared priorities and concerns that deserve attention.
+
+Built for the **[Good Neighbor Agents track](https://agentsforhumans.devpost.com/)**, Saywide helps parent representatives, school communities, and local organizations spend less effort processing feedback and more time acting on it together.
 
 ## How it works
 
-1. **Describe what you want to learn.** Click **Get started**, continue as a guest, and create a new survey. Speak your idea; AI drafts the title, description, and questions for you to review.
-2. **Publish and listen.** Share the link or QR code. Participants answer anonymously by voice or text, then review and submit their responses.
-3. **Ask for a report.** Choose a starting point such as **Overall picture**, or write your own request. Watch the agent work, then explore key findings and supporting quotes.
+1. **Create with AI.** Open [Saywide](https://saywide.com), click **Get started**, and continue as a guest. Create a survey and speak your idea; AI drafts the title, description, and questions for you to review.
+2. **Publish and listen.** Share the link or QR code. Participants answer anonymously by voice or text, review their answers, and submit. No participant account is needed.
+3. **Ask for a report.** Choose **Overall picture** or describe what you want to find out. Watch the agent's progress, then explore findings, supporting quotes, and suggested actions.
 
-> **Example:** Ask grade 2 parents about their concerns and suggestions. Collect feedback on homework, reading support, and school communication, then ask the agent to identify shared priorities.
+> **Try this example:** Ask Grade 2 parents about their concerns and suggestions. Then request: “Which concerns come up most, and what should we raise with the school?”
 
 <div align="center">
   <img src="docs/saywide-flow.svg" alt="Saywide flow: create an AI-assisted survey, collect participant responses, and generate a report with source validation and calculated support." width="1130" />
@@ -40,31 +42,46 @@ Communities have plenty to say, but busy chats bury concerns and simple polls mi
 
 ## What the agent does
 
-Built with **AWS Strands**, the agent turns anonymous responses into a report shaped by the organizer's request:
+Once the organizer requests a report, the **AWS Strands Agents SDK** runs the reporting workflow, guided by [report skills](backend/skills/):
 
-- Reads the responses and connects similar ideas into clear themes.
-- Surfaces shared priorities and concerns that might otherwise be missed.
-- Links findings to source evidence and includes supporting quotes.
-- Produces a structured report with key insights and suggested actions.
+- Analyzes anonymous responses against the organizer's question or goal.
+- Groups related ideas and identifies shared priorities and less common concerns.
+- Connects findings to source responses and selects supporting quotes.
+- Produces a structured report with insights and suggested actions.
 
-**Evidence is checked in code:** the backend validates source references and calculates support counts and percentages from a fixed response snapshot. Organizers can follow the agent's progress as the report takes shape.
+**Evidence checks run in code.** The backend validates source references and calculates support counts and percentages from a fixed response snapshot. Support figures refer to the responses included in that snapshot.
 
-## Technology
+The organizer sets the focus; the agent handles the analysis. People can inspect the evidence and decide what to do next.
+
+## Architecture
 
 <details>
-<summary>Stack and data flow</summary>
+<summary>Architecture diagram, stack, and data flow</summary>
+
+```mermaid
+flowchart TD
+    UI["Next.js browser app"] <-->|"Audio / transcript"| Voice["Amazon Transcribe"]
+    UI <-->|"Survey data / reports"| API["Fastify API"]
+    API <-->|"Responses / snapshots / reports"| DB["PostgreSQL"]
+    API -->|"Report request"| Agent["Strands report agent"]
+    Agent <-->|"Model calls"| Model["OpenAI or Amazon Bedrock"]
+    Agent -->|"Findings / source references"| Checks["Backend evidence checks"]
+    Checks -->|"Validated references / calculated support"| API
+    API -->|"Survey drafting"| OpenAI["OpenAI"]
+```
 
 | Component | Role |
 | --- | --- |
-| **Next.js** | Organizer dashboard, survey builder, participant experience, and report views |
-| **Fastify** | API, session handling, survey operations, and report orchestration |
-| **PostgreSQL** | Surveys, submitted responses, report snapshots, and saved findings |
-| **AWS Strands Agents SDK** | Agent workflow and trusted report skills |
+| **Next.js** | Survey builder, participant experience, dashboard, and report views |
+| **Fastify** | API, sessions, survey operations, and report orchestration |
+| **PostgreSQL** | Surveys, responses, report snapshots, and saved findings |
+| **AWS Strands Agents SDK** | Report agent workflow and trusted report skills |
 | **OpenAI** | Default report model, survey drafting, and wording suggestions |
+| **Amazon Bedrock** | Optional report model provider |
 | **Amazon Transcribe** | Live speech-to-text streamed directly from the browser |
-| **Zod contracts** | Shared API schemas and types across frontend and backend |
+| **Zod contracts** | Shared API schemas and types |
 
-Microphone audio streams directly to Amazon Transcribe using a short-lived signed URL. The Saywide backend authorizes the connection but does not receive or store the audio. Submitted answer text is stored for survey reporting.
+Audio streams directly to Amazon Transcribe through a short-lived signed URL authorized by the backend. The Saywide backend does not receive or store audio; submitted answer text is stored for reporting.
 
 </details>
 
@@ -73,9 +90,7 @@ Microphone audio streams directly to Amazon Transcribe using a short-lived signe
 <details>
 <summary>Setup, configuration, and checks</summary>
 
-**Requirements:** Node.js 22 or later, Corepack, and Docker.
-
-Run from the repository root:
+**Requirements:** Node.js 22 or later, Corepack, and Docker. Commands below use PowerShell and run from the repository root.
 
 ```powershell
 corepack pnpm install
@@ -85,7 +100,7 @@ docker compose up -d postgres
 corepack pnpm db:migrate
 ```
 
-In `frontend/.env.local`, set `NEXT_PUBLIC_USE_MOCK_API=false` to connect to the local backend. Then start both applications:
+Set `NEXT_PUBLIC_USE_MOCK_API=false` in `frontend/.env.local`, then start both applications:
 
 ```powershell
 corepack pnpm dev
@@ -95,16 +110,14 @@ corepack pnpm dev
 | --- | --- |
 | Website | [localhost:3000](http://localhost:3000) |
 | Organizer entry | [localhost:3000/start](http://localhost:3000/start) |
-| AI survey creation | [localhost:3000/create](http://localhost:3000/create) |
-| Manual survey builder | [localhost:3000/surveys/new](http://localhost:3000/surveys/new) |
 | Backend API | `http://localhost:4000` |
 | PostgreSQL | `127.0.0.1:5433` |
 
-Organizer pages require a guest or account session and guide new visitors through the entry page. Participant links open directly.
+Organizer pages require a guest or account session; participant links open directly.
 
 ### Enable AI and voice
 
-Configure provider access in `backend/.env`, using the example file as the configuration reference:
+Configure `backend/.env`, using the example file as the reference:
 
 | Setting | Purpose |
 | --- | --- |
@@ -114,15 +127,15 @@ Configure provider access in `backend/.env`, using the example file as the confi
 | `AWS_REGION` | Region used for voice transcription; use your project's assigned Region |
 | `AWS_PROFILE` | Local AWS credential profile; the example uses `saywide.com` |
 
-Voice requires an authenticated AWS profile with `transcribe:StartStreamTranscriptionWebSocket` permission. Confirm the project's assigned Region in **AWS Settings > View all projects > Overview > Additional Info > Region** before configuring it. For hosted runtime credentials, omit `AWS_PROFILE`.
+Voice requires AWS credentials with `transcribe:StartStreamTranscriptionWebSocket` permission. Omit `AWS_PROFILE` when using hosted runtime credentials.
 
-Reports also support Amazon Bedrock through `MODEL_PROVIDER=bedrock` and `BEDROCK_MODEL_ID`. Survey drafting and wording suggestions continue to use the OpenAI configuration.
+Reports also support Amazon Bedrock through `MODEL_PROVIDER=bedrock` and `BEDROCK_MODEL_ID`. Survey drafting and wording suggestions still use OpenAI.
 
 ### Explore the UI demo
 
-Set `NEXT_PUBLIC_USE_MOCK_API=true` in `frontend/.env.local` to use synthetic data. The seeded participant survey is available at [localhost:3000/s/team-voices](http://localhost:3000/s/team-voices).
+Set `NEXT_PUBLIC_USE_MOCK_API=true` in `frontend/.env.local` to explore synthetic data without live AI or transcription. Use the [manual builder](http://localhost:3000/surveys/new); the seeded participant survey is at [localhost:3000/s/team-voices](http://localhost:3000/s/team-voices).
 
-Demo mode lets you explore the interface without live AI or transcription. Use the manual builder in this mode; voice tools require the live API and provider configuration.
+Voice tools require the live API and provider configuration.
 
 ### Verify changes
 
@@ -133,7 +146,7 @@ corepack pnpm test
 corepack pnpm build
 ```
 
-Backend integration tests use a disposable PostgreSQL database, so keep the local database service running.
+Backend integration tests use a disposable PostgreSQL database; keep the local database service running.
 
 </details>
 
@@ -142,25 +155,23 @@ Backend integration tests use a disposable PostgreSQL database, so keep the loca
 <details>
 <summary>Current limits and deployment notes</summary>
 
-- **Evidence review:** agent skills guide analysis and self-checking. A separate enforced reviewer-and-revision workflow is not implemented.
-
-- **Accounts:** registration, login, logout, and confirmed transfer of guest surveys are supported. Email verification and password recovery are not yet implemented.
-- **Guest work:** guest workspaces are bound to the browser session. Creating an account preserves guest surveys; signing into an existing account offers a separate transfer confirmation.
-- **Report size:** the default limit is 30 submitted response sessions per snapshot. Larger snapshots are rejected; report batching is not implemented.
-- **Production sessions:** keep the frontend and API on the same site, such as `saywide.com` and `api.saywide.com`, for the Secure, HttpOnly, SameSite=Lax session cookies. Replace development secrets before deployment. Multiple backend replicas require a shared authentication failure limiter.
+- **Report size:** up to 30 submitted response sessions per snapshot by default. Larger snapshots are rejected; batching is not implemented.
+- **Evidence review:** skills guide analysis and self-checking. Source-reference checks do not independently verify the agent's interpretations; a separate enforced reviewer-and-revision workflow is not implemented.
+- **Accounts:** registration, login, logout, and guest-survey transfer are supported. Email verification and password recovery are not yet implemented.
+- **Guest work:** workspaces are bound to the browser session. Registration preserves guest surveys; transferring them to an existing account requires confirmation.
+- **Deployment:** keep frontend and API on the same site, such as `saywide.com` and `api.saywide.com`, for Secure, HttpOnly, SameSite=Lax session cookies. Replace development secrets; multiple backend replicas require a shared authentication failure limiter.
 
 </details>
 
 ## Repository structure
 
-```text
-saywide.com/
-├── frontend/             # Next.js application and HTTP/mock API adapters
-├── backend/              # Fastify API, database migrations, and report workflow
-│   └── skills/           # Trusted guidance for report agents
-├── packages/contracts/   # Shared Zod schemas and API types
-└── docs/                 # Flow diagram and technical specifications
-```
+| Directory | Contents |
+| --- | --- |
+| [frontend/](frontend/) | Next.js app and HTTP/mock API adapters |
+| [backend/](backend/) | Fastify API, migrations, and report workflow |
+| [backend/skills/](backend/skills/) | Trusted guidance for report agents |
+| [packages/contracts/](packages/contracts/) | Shared Zod schemas and API types |
+| [docs/](docs/) | Diagrams and technical specifications |
 
 Technical references: [API endpoints](docs/api-endpoints.md) · [Database structure](docs/database-structure.md) · [Application screens](docs/application-screens.md)
 
